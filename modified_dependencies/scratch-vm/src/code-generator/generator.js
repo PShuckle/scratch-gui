@@ -1,7 +1,7 @@
 const blockCodes = {
-    event: require('./event'),
-    motion: require('./motion'),
-    operators: require('./operators')
+    event: require('./code/event'),
+    motion: require('./code/motion'),
+    operators: require('./code/operators')
 };
 
 class Generator {
@@ -38,11 +38,9 @@ class Generator {
 
             scripts.forEach(blockID => {
                 code += this.blockToCode(this.activeBlocks[blockID]);
-            });
-           
-            
+            });   
         });
-        console.log(code);
+        // console.log(code);
         return code;
     }
 

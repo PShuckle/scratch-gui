@@ -24,13 +24,13 @@ class Motion {
         var steps = this.generator.blockToCode(stepsBlock);
 
         // TODO: Find way to call degToRad function from Math.Util
-        var code = 'console.log(this.vm.generator.targetNameLookup);\n'
-        + 'const steps = ' + steps + ';\n'
+        var code = 'const steps = ' + steps + ';\n'
         + 'const radians = (Math.PI/180) * (90 - ' + target + '.direction);\n'
         + 'const dx = steps * Math.cos(radians);\n'
         + 'const dy = steps * Math.sin(radians);\n'
         + '' + target + '.setXY(' + target + '.x + dx, ' + target + '.y + dy);\n'
-        + this.generator.blockToCode(nextBlock);
+        + this.generator.blockToCode(nextBlock)
+        + '\n';
         return code;
     }
 }

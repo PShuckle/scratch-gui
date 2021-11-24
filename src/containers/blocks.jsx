@@ -524,8 +524,6 @@ class Blocks extends React.Component {
     
 
     render () {
-
-        console.log('rendering');
         /* eslint-disable no-unused-vars */
         const {
             anyModalVisible,

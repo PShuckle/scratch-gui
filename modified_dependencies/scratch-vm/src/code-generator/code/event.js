@@ -24,7 +24,7 @@ class Event {
         var code = 'window.addEventListener(\'keydown\', (event) => {\nif (event.code === "' 
         + 'ArrowLeft' + '") {'
         + this.generator.blockToCode(nextBlock)
-        + '}\n})';
+        + '}\n});\n';
         return code;
     }
 }
