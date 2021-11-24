@@ -183,7 +183,6 @@ class VirtualMachine extends EventEmitter {
      * "Green flag" handler - start all threads starting with a green flag.
      */
     greenFlag () {
-        this.generator.stackToCode();
         this.runtime.greenFlag();
     }
 

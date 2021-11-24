@@ -1,5 +1,3 @@
-const ORDER_PLACEHOLDER = 0;
-
 class Motion {
 
     constructor (generator) {
@@ -14,24 +12,26 @@ class Motion {
             }
         }
         else {
-            return ['', ORDER_PLACEHOLDER];
+            return '';
         }
     }
 
     motion_movesteps (block) {
-        console.log(this.generator.activeTarget);
         var nextBlock = this.generator.activeBlocks[block.next];
         var stepsBlock = this.generator.activeBlocks[block.inputs.STEPS.block];
-        var targetName = this.generator.activeTarget.sprite.name;
-        var steps = this.generator.blockToCode(stepsBlock)[0];
-        console.log(steps);
-        var code = 'const steps = ' + steps + ';\n'
-        + 'const radians = MathUtil.degToRad(90 - ' + targetName + '.direction);\n'
+        var targetName = this.generator.targetName;
+        var target = 'this.vm.generator.targetNameLookup.' + targetName;
+        var steps = this.generator.blockToCode(stepsBlock);
+
+        // TODO: Find way to call degToRad function from Math.Util
+        var code = 'console.log(this.vm.generator.targetNameLookup);\n'
+        + 'const steps = ' + steps + ';\n'
+        + 'const radians = (Math.PI/180) * (90 - ' + target + '.direction);\n'
         + 'const dx = steps * Math.cos(radians);\n'
         + 'const dy = steps * Math.sin(radians);\n'
-        + targetName + '.setXY(' + targetName + '.x + dx, ' + targetName + '.y + dy);\n'
+        + '' + target + '.setXY(' + target + '.x + dx, ' + target + '.y + dy);\n'
         + this.generator.blockToCode(nextBlock);
-        return [code, ORDER_PLACEHOLDER];
+        return code;
     }
 }
 

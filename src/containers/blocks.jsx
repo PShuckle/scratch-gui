@@ -3,7 +3,7 @@ import debounce from 'lodash.debounce';
 import defaultsDeep from 'lodash.defaultsdeep';
 import makeToolboxXML from '../lib/make-toolbox-xml';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import VMScratchBlocks from '../lib/blocks';
 import VM from 'scratch-vm';
 
@@ -135,6 +135,17 @@ class Blocks extends React.Component {
         if (this.props.isVisible) {
             this.setLocale();
         }
+
+        // TODO: find better way of accessing vm from window
+        window.vm = this.props.vm;
+
+        // generate compilable code for workspace whenever spacebar is pressed
+        window.addEventListener('keydown', (event) => {
+            if (event.code === 'Space') {
+                console.log(this.props.vm.generator.workspaceToCode());
+                eval(this.props.vm.generator.workspaceToCode());
+            }
+        });
     }
     shouldComponentUpdate (nextProps, nextState) {
         return (
@@ -185,6 +196,8 @@ class Blocks extends React.Component {
         } else {
             this.workspace.setVisible(false);
         }
+
+        eval(this.props.vm.generator.stackToCode());
     }
     componentWillUnmount () {
         this.detachVM();
@@ -508,7 +521,11 @@ class Blocks extends React.Component {
                 this.updateToolbox(); // To show new variables/custom blocks
             });
     }
+    
+
     render () {
+
+        console.log('rendering');
         /* eslint-disable no-unused-vars */
         const {
             anyModalVisible,
@@ -532,8 +549,10 @@ class Blocks extends React.Component {
             workspaceMetrics,
             ...props
         } = this.props;
+
         /* eslint-enable no-unused-vars */
         return (
+            
             <React.Fragment>
                 <DroppableBlocks
                     componentRef={this.setBlocks}

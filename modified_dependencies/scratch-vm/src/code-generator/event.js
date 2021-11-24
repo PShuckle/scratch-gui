@@ -1,5 +1,3 @@
-const ORDER_PLACEHOLDER = 0;
-
 class Event {
 
     constructor (generator) {
@@ -14,19 +12,20 @@ class Event {
             }
         }
         else {
-            return ['', ORDER_PLACEHOLDER];
+            return '';
         }
     }
 
     event_whenkeypressed (block) {
         var nextBlock = this.generator.activeBlocks[block.next];
         var key = block.fields.KEY_OPTION.value;
-        var code = 'document.addEventListener("keydown", function (event) {\nif (event.code === "' 
-        + key + '") {'
-        + this.generator.blockToCode(nextBlock)[0]
+
+        // TODO: use actual keycodes
+        var code = 'window.addEventListener(\'keydown\', (event) => {\nif (event.code === "' 
+        + 'ArrowLeft' + '") {'
+        + this.generator.blockToCode(nextBlock)
         + '}\n})';
-        var order = ORDER_PLACEHOLDER;
-        return [code, order];
+        return code;
     }
 }
 
