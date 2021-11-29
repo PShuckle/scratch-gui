@@ -142,8 +142,9 @@ class Blocks extends React.Component {
         // generate compilable code for workspace whenever spacebar is pressed
         window.addEventListener('keydown', (event) => {
             if (event.code === 'Space') {
-                console.log(this.props.vm.generator.workspaceToCode());
-                eval(this.props.vm.generator.workspaceToCode());
+                var codeGenerator = this.props.vm.generator;
+                console.log(codeGenerator.workspaceToCode());
+                eval(codeGenerator.workspaceToCode());
             }
         });
     }

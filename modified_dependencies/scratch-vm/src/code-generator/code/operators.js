@@ -26,8 +26,8 @@ class Operators {
     operator_add (block) {
         var num1_block = this.generator.activeBlocks[block.inputs.NUM1.block];
         var num2_block = this.generator.activeBlocks[block.inputs.NUM2.block];
-        var code = this.generator.blockToCode(num1_block) + ' + ' 
-        + this.generator.blockToCode(num2_block);
+        var code = '(' + this.generator.blockToCode(num1_block) + ' + ' 
+        + this.generator.blockToCode(num2_block) + ')';
         return code;
     }
 }
