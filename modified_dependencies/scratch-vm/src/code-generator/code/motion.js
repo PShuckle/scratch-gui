@@ -20,7 +20,7 @@ class Motion {
         var nextBlock = this.generator.activeBlocks[block.next];
         var stepsBlock = this.generator.activeBlocks[block.inputs.STEPS.block];
         var targetName = this.generator.targetName;
-        var target = 'this.vm.generator.targetNameLookup.' + targetName;
+        var target = 'window.vm.generator.targetNameLookup.' + targetName;
         var steps = this.generator.blockToCode(stepsBlock);
 
         // TODO: Find way to call degToRad function from Math.Util

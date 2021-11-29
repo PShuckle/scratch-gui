@@ -4,6 +4,9 @@
 # NPM
 /node_modules
 npm-*
+/modified_dependencies/scratch-blocks/node_modules
+/modified_dependencies/scratch-vm/node_modules
+/modified_dependencies/scratch-render/node_modules
 
 # Testing
 /.nyc_output

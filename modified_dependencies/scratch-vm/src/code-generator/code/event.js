@@ -22,16 +22,17 @@ class Event {
         var nextBlock = this.generator.activeBlocks[block.next];
         var key = block.fields.KEY_OPTION.value;
 
-        var code = 'window.addEventListener(\'keydown\', (event) => {\n';
+        var code = 'var onKeyEvent = function(event) {';
+            if (key != 'any') {
+                var eventCode = keyToEventCode[key];
+                code += 'if (event.code === "' + eventCode + '") {\n'
+                + this.generator.blockToCode(nextBlock) + '}\n};\n';
+            }
+            else {
+                code += this.generator.blockToCode(nextBlock) + '\n};\n';
+            }
 
-        if (key != 'any') {
-            var eventCode = keyToEventCode[key];
-            code += 'if (event.code === "' + eventCode + '") {\n'
-            + this.generator.blockToCode(nextBlock) + '}\n});\n';
-        }
-        else {
-            code += this.generator.blockToCode(nextBlock) + '\n});\n';
-        }
+        code += 'document.addEventListener(\'keydown\', onKeyEvent);\n';
 
         return code;
     }
