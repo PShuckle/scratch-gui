@@ -1,5 +1,4 @@
 import React from 'react';
-import { DropdownButton, Dropdown } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 import {connect} from 'react-redux';
 
