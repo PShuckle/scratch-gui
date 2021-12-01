@@ -14,7 +14,6 @@ const ScreenCapture = props => {
     const socketRef = useRef();
     const teacher = useRef();
     const userStream = useRef();
-    const senders = useRef([]);
 
     let roomID = window.prompt("Enter room ID:");
     let name = window.prompt("Enter your name:");
@@ -47,6 +46,7 @@ const ScreenCapture = props => {
 
     function streamToTeacher(teacherID) {
         peerRef.current = createPeer(teacherID);
+        console.log(userStream.current.getTracks());
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
 

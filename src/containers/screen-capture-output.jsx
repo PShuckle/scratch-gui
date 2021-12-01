@@ -16,9 +16,6 @@ const ScreenCaptureOutput = props => {
 
     const peerRef = useRef();
     const socketRef = useRef();
-    const teacher = useRef();
-    const studentStream = useRef();
-    const senders = useRef([]);
     const studentVideo = useRef();
     const studentUser = useRef();
 
