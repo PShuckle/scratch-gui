@@ -292,6 +292,19 @@ $fade-out-distance: 15px;
     left: 1.25rem;
 }
 
+.shareScreenButton {
+    position: absolute;
+    top: 5rem;
+}
+
+[dir="ltr"] .shareScreenButton {
+    right: 1.25rem;
+}
+
+[dir="rtl"] .shareScreenButton {
+    left: 1.25rem;
+}
+
 /* Menu */
 
 .menu-bar-position {

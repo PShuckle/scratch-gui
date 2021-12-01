@@ -197,8 +197,6 @@ class Blocks extends React.Component {
         } else {
             this.workspace.setVisible(false);
         }
-
-        eval(this.props.vm.generator.stackToCode());
     }
     componentWillUnmount () {
         this.detachVM();

@@ -8,7 +8,7 @@ class ClassroomGUI extends React.Component {
     render() {
         return (
             <Box>
-                <Dropdown></Dropdown>
+                <Dropdown ></Dropdown>
                 <ScreenCaptureOutput></ScreenCaptureOutput>
             </Box>
         );
