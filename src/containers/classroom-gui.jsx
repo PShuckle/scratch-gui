@@ -32,11 +32,12 @@ const ClassroomGUI = props => {
     });
 
     function handleUserJoin(userData) {
-        studentUser.current = userData;
+        studentUser.current = userData.id;
 
         const dropdown = document.getElementById('dropdown');
         const option = document.createElement('option');
         option.text = userData.name;
+        option.value = userData.id;
         dropdown.add(option);
     };
 
@@ -80,7 +81,7 @@ const ClassroomGUI = props => {
     function handleICECandidateEvent(e) {
         if (e.candidate) {
             const payload = {
-                target: studentUser.current.id,
+                target: studentUser.current,
                 candidate: e.candidate,
             }
             socketRef.current.emit("ice-candidate", payload);
@@ -95,15 +96,13 @@ const ClassroomGUI = props => {
     }
 
     function handleTrackEvent(e) {
-        studentVideos[studentUser.current.name] = e.streams[0];
+        studentVideos[studentUser.current] = e.streams[0];
     };
     
     function displayStudentVideo() {
         const dropdown = document.getElementById('dropdown');
-        const studentName = dropdown.options[dropdown.selectedIndex].text;
-        console.log(studentName);
-        studentVideo.current.srcObject = studentVideos[studentName];
-        console.log(studentVideo.current.srcObject);
+        const studentID = dropdown.value;
+        studentVideo.current.srcObject = studentVideos[studentID];
     }
 
     return (
