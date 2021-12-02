@@ -5,7 +5,7 @@ class Room {
     }
 
     addUser(userSocketID, name) {
-        this.users[userSocketID] = name;
+        this.users[name] = userSocketID;
     }
 
     getTeacher() {

@@ -5,26 +5,18 @@ import React, {
 import io from "socket.io-client";
 
 const ScreenCapture = props => {
-    // constructor(name, roomID) {
-    //     this.name = name;
-    //     this.roomID = roomID;
-    // }
 
     const peerRef = useRef();
     const socketRef = useRef();
     const teacher = useRef();
     const userStream = useRef();
-    const senders = useRef([]);
     
     useEffect(() => {
         userStream.current = null;
 
         socketRef.current = io('http://localhost:8000');
 
-        socketRef.current.on('teacher', teacherID => {
-            streamToTeacher(teacherID);
-            teacher.current = teacherID;
-        });
+        socketRef.current.on('teacher', streamToTeacher);
 
         socketRef.current.on('answer', handleAnswer);
 
@@ -37,7 +29,7 @@ const ScreenCapture = props => {
         let name = window.prompt("Enter your name:");
 
         navigator.mediaDevices.getDisplayMedia( {
-            audio:false,
+            audio: false,
             video: true
         }).then(stream => {
             userStream.current = stream;
@@ -50,6 +42,7 @@ const ScreenCapture = props => {
     };
 
     function streamToTeacher(teacherID) {
+        teacher.current = teacherID;
         peerRef.current = createPeer(teacherID);
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }

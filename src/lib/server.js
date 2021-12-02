@@ -25,8 +25,6 @@ io.on("connection", socket => {
         var room = rooms[roomID];
 
         if (room) {
-            // rooms[roomID].push(socket.id);
-
             room.addUser(socket.id, name);
 
             const teacher = room.getTeacher();
@@ -38,11 +36,6 @@ io.on("connection", socket => {
             console.error('room does not exist');
 
         }
-        // const otherUser = rooms[roomID].find(id => id !== socket.id);
-        // if (otherUser) {
-        //     socket.emit("other user", otherUser);
-        //     socket.to(otherUser).emit("user joined", socket.id);
-        // }
     });
 
     socket.on('offer', payload => {

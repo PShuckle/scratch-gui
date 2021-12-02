@@ -1,20 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
+import io from "socket.io-client";
 
 const Dropdown = props => {
-    const {
-        names
-    } = props;
-
-    console.log(names);
-
-    // const nameOptions = names.map(name => <option key={name} value={name}>{name}</option>);
 
     return (
-        <select>
-            {/* {nameOptions}; */}
-        </select>
+        <select id = 'dropdown'></select>
     );
 }
 
