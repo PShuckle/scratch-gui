@@ -14,39 +14,43 @@ const ScreenCapture = props => {
     const socketRef = useRef();
     const teacher = useRef();
     const userStream = useRef();
-
-    let roomID = window.prompt("Enter room ID:");
-    let name = window.prompt("Enter your name:");
-
+    const senders = useRef([]);
+    
     useEffect(() => {
-        navigator.mediaDevices.getDisplayMedia({
-            audio: false,
+        userStream.current = null;
+
+        socketRef.current = io('http://localhost:8000');
+
+        socketRef.current.on('teacher', teacherID => {
+            streamToTeacher(teacherID);
+            teacher.current = teacherID;
+        });
+
+        socketRef.current.on('answer', handleAnswer);
+
+        socketRef.current.on('ice-candidate', handleNewICECandidateMsg);
+
+    }, []);
+    
+    function startStream() {
+        let roomID = window.prompt("Enter room ID:");
+        let name = window.prompt("Enter your name:");
+
+        navigator.mediaDevices.getDisplayMedia( {
+            audio:false,
             video: true
         }).then(stream => {
-
             userStream.current = stream;
 
-            socketRef.current = io('http://localhost:8000');
             socketRef.current.emit('join room', {
                 roomID: roomID,
                 name: name
             });
-
-            socketRef.current.on('teacher', teacherID => {
-                streamToTeacher(teacherID);
-                teacher.current = teacherID;
-            });
-
-            socketRef.current.on('answer', handleAnswer);
-
-            socketRef.current.on('ice-candidate', handleNewICECandidateMsg);
         })
-
-    }, []);
+    };
 
     function streamToTeacher(teacherID) {
         peerRef.current = createPeer(teacherID);
-        console.log(userStream.current.getTracks());
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
 
@@ -105,7 +109,7 @@ const ScreenCapture = props => {
     }
 
     return (
-        null
+        <button onClick={startStream}>Share Screen</button>
     );
 
 }

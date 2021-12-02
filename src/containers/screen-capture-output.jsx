@@ -76,7 +76,7 @@ const ScreenCaptureOutput = props => {
     function handleICECandidateEvent(e) {
         if (e.candidate) {
             const payload = {
-                target: otherUser.current,
+                target: studentUser.current,
                 candidate: e.candidate,
             }
             socketRef.current.emit("ice-candidate", payload);
@@ -91,7 +91,11 @@ const ScreenCaptureOutput = props => {
     }
 
     function handleTrackEvent(e) {
-        studentVideo.current.srcObject = e.streams[0];
+        // console.log(e);
+        // studentVideo.current.srcObject = e.streams[0];
+        // console.log(studentVideo.current.srcObject.getTracks());
+        const vid = document.getElementById("video");
+        video.srcObject = e.streams[0];
     };
 
     return (

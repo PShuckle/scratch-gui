@@ -33,7 +33,7 @@ import TelemetryModal from '../telemetry-modal/telemetry-modal.jsx';
 
 import layout, { STAGE_SIZE_MODES } from '../../lib/layout-constants';
 import { resolveStageSize } from '../../lib/screen-utils';
-import StartCapture from "../../lib/screen-capture.js";
+import ScreenCaptureButton from "../../lib/screen-capture.jsx";
 
 import styles from './gui.css';
 import addExtensionIcon from './icon--extensions.svg';
@@ -328,7 +328,7 @@ const GUIComponent = props => {
                                         <Watermark />
                                     </Box>
                                     <Box className={styles.shareScreenButton}>
-                                        <StartCapture></StartCapture>
+                                        <ScreenCaptureButton></ScreenCaptureButton>
                                     </Box>
                                 </TabPanel>
                                 <TabPanel className={tabClassNames.tabPanel}>
