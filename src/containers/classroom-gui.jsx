@@ -16,7 +16,7 @@ const ClassroomGUI = props => {
     const studentVideo = useRef();
     const studentUser = useRef();
 
-    const students = {};
+    const studentVideos = {};
     const roomID = nanoid();
 
     useEffect(() => {
@@ -32,7 +32,7 @@ const ClassroomGUI = props => {
     });
 
     function handleUserJoin(userData) {
-        studentUser.current = userData.userID;
+        studentUser.current = userData;
 
         const dropdown = document.getElementById('dropdown');
         const option = document.createElement('option');
@@ -80,7 +80,7 @@ const ClassroomGUI = props => {
     function handleICECandidateEvent(e) {
         if (e.candidate) {
             const payload = {
-                target: studentUser.current,
+                target: studentUser.current.id,
                 candidate: e.candidate,
             }
             socketRef.current.emit("ice-candidate", payload);
@@ -95,13 +95,21 @@ const ClassroomGUI = props => {
     }
 
     function handleTrackEvent(e) {
-        studentVideo.current.srcObject = e.streams[0];
+        studentVideos[studentUser.current.name] = e.streams[0];
     };
-
+    
+    function displayStudentVideo() {
+        const dropdown = document.getElementById('dropdown');
+        const studentName = dropdown.options[dropdown.selectedIndex].text;
+        console.log(studentName);
+        studentVideo.current.srcObject = studentVideos[studentName];
+        console.log(studentVideo.current.srcObject);
+    }
 
     return (
         <Box>
             <Dropdown></Dropdown>
+            <button onClick = {displayStudentVideo}>Play video</button>
             <ScreenCaptureOutput video={studentVideo}></ScreenCaptureOutput>
             <p>{roomID}</p>
         </Box>

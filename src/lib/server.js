@@ -15,15 +15,18 @@ const rooms = {};
 
 io.on("connection", socket => {
     socket.on('create room', roomID => {
+        // create room with creator set as the teacher
         rooms[roomID] = new Room(socket.id);
     });
 
     socket.on('join room', joinRequest => {
+        // let student join a room
         const roomID = joinRequest.roomID;
         const name = joinRequest.name;
 
         var room = rooms[roomID];
 
+        // check if room with roomID entered exists
         if (room) {
             room.addUser(socket.id, name);
 
@@ -38,6 +41,8 @@ io.on("connection", socket => {
         }
     });
 
+    // establish connection between student and teacher
+
     socket.on('offer', payload => {
         io.to(payload.target).emit('offer', payload);
     });
@@ -50,6 +55,5 @@ io.on("connection", socket => {
         io.to(incoming.target).emit('ice-candidate', incoming.candidate);
     });
 });
-
 
 server.listen(8000, () => console.log('server is running on port 8000'));

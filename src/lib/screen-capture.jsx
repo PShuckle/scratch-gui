@@ -24,6 +24,9 @@ const ScreenCapture = props => {
 
     }, []);
     
+    /**
+     * Join a room and start capturing screen
+     */
     function startStream() {
         let roomID = window.prompt("Enter room ID:");
         let name = window.prompt("Enter your name:");
@@ -41,12 +44,22 @@ const ScreenCapture = props => {
         })
     };
 
+    /**
+     * Given that the room joined has a teacher present, establish connection with the teacher 
+     * and begin streaming
+     * @param {*} teacherID the socket ID of the teacher
+     */
     function streamToTeacher(teacherID) {
         teacher.current = teacherID;
         peerRef.current = createPeer(teacherID);
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
 
+    /**
+     * Create a peer connection with the teacher
+     * @param {} teacherID the socket ID of the teacher
+     * @returns 
+     */
     function createPeer(teacherID) {
         const peer = new RTCPeerConnection({
             iceServers: [{
@@ -66,6 +79,10 @@ const ScreenCapture = props => {
         return peer;
     }
 
+    /**
+     * Begin negotiation with the teacher client by creating and sending offer
+     * @param {*} teacherID teacherID the socket ID of the teacher
+     */
     function handleNegotiationNeededEvent(teacherID) {
         peerRef.current.createOffer().then(offer => {
             return peerRef.current.setLocalDescription(offer);
@@ -79,6 +96,10 @@ const ScreenCapture = props => {
         }).catch(e => console.log(e));
     }
 
+    /**
+     * Handle the teacher sending an answer in response to the offer
+     * @param {*} answer 
+     */
     function handleAnswer(answer) {
         const desc = new RTCSessionDescription(answer.sdp);
         peerRef.current.setRemoteDescription(desc).catch(e => console.log(e));
