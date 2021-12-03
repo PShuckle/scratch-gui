@@ -10,7 +10,7 @@ const ScreenCapture = props => {
     const socketRef = useRef();
     const teacher = useRef();
     const userStream = useRef();
-    
+
     useEffect(() => {
         userStream.current = null;
 
@@ -22,12 +22,18 @@ const ScreenCapture = props => {
 
         socketRef.current.on('ice-candidate', handleNewICECandidateMsg);
 
-        socketRef.current.on('click', handleClickEvent);
+        socketRef.current.on('mouse', handleMouseEvent);
+
+        // socketRef.current.on('click', handleClickEvent);
+
+        // socketRef.current.on('dragStart', handleDragStartEvent);
+
+        // socketRef.current.on('drag', handleDragEvent);
 
         socketRef.current.on('key', handleKeyEvent);
 
     }, []);
-    
+
     /**
      * Join a room and start capturing screen
      */
@@ -35,7 +41,7 @@ const ScreenCapture = props => {
         let roomID = window.prompt("Enter room ID:");
         let name = window.prompt("Enter your name:");
 
-        navigator.mediaDevices.getDisplayMedia( {
+        navigator.mediaDevices.getDisplayMedia({
             audio: false,
             video: true
         }).then(stream => {
@@ -67,13 +73,13 @@ const ScreenCapture = props => {
     function createPeer(teacherID) {
         const peer = new RTCPeerConnection({
             iceServers: [{
-                    urls: "stun:stun.stunprotocol.org"
-                },
-                {
-                    urls: 'turn:numb.viagenie.ca',
-                    credential: 'muazkh',
-                    username: 'webrtc@live.com'
-                },
+                urls: "stun:stun.stunprotocol.org"
+            },
+            {
+                urls: 'turn:numb.viagenie.ca',
+                credential: 'muazkh',
+                username: 'webrtc@live.com'
+            },
             ]
         });
 
@@ -126,20 +132,28 @@ const ScreenCapture = props => {
             .catch(e => console.log(e));
     }
 
-    function handleClickEvent(event) {
+    function handleMouseEvent(event) {
+
         const x = event.x * window.innerWidth;
         const y = event.y * window.innerHeight;
 
-        console.log(document.elementFromPoint(x,y));
+        if (!document.elementFromPoint(x,y)) {
+            return;
+        }
 
-        document.elementFromPoint(x,y).dispatchEvent(new MouseEvent('mousedown', {clientX: x, clientY: y, bubbles: true}));
-        document.elementFromPoint(x,y).dispatchEvent(new MouseEvent('mouseup', {clientX: x, clientY: y, bubbles: true}));
-        document.elementFromPoint(x,y).dispatchEvent(new MouseEvent('click', {clientX: x, clientY: y, bubbles: true}));
+        document.elementFromPoint(x, y).dispatchEvent(new MouseEvent(event.type,
+            {
+                clientX: x,
+                clientY: y,
+                bubbles: true,
+                cancelable: true
+            })
+        );
     }
 
     function handleKeyEvent(event) {
         console.log(event.code);
-        window.dispatchEvent(new KeyboardEvent('keydown', {key: event.key, code: event.code}));
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: event.key, code: event.code }));
     }
 
     return (

@@ -33,8 +33,11 @@ io.on("connection", socket => {
             const teacher = room.getTeacher();
 
             socket.emit('teacher', teacher);
-            socket.to(teacher).emit('user joined', {id: socket.id, name: name});
-            
+            socket.to(teacher).emit('user joined', {
+                id: socket.id,
+                name: name
+            });
+
         } else {
             console.error('room does not exist');
 
@@ -55,16 +58,19 @@ io.on("connection", socket => {
         io.to(incoming.target).emit('ice-candidate', incoming.candidate);
     });
 
-    socket.on('click', clickEvent => {
-        io.to(clickEvent.studentID).emit('click', {x: clickEvent.x, y: clickEvent.y});
-    })
-
-    socket.on('dragStart', clickEvent => {
-        io.to(clickEvent.studentID).emit('dragStart', {x: clickEvent.x, y: clickEvent.y});
-    })
+    socket.on('mouse', mouseEvent => {
+        io.to(mouseEvent.studentID).emit('mouse', {
+            x: mouseEvent.x,
+            y: mouseEvent.y,
+            type: mouseEvent.type
+        });
+    });
 
     socket.on('key', keyEvent => {
-        io.to(keyEvent.studentID).emit('key', {key: keyEvent.key, code: keyEvent.code});
+        io.to(keyEvent.studentID).emit('key', {
+            key: keyEvent.key,
+            code: keyEvent.code
+        });
     })
 });
 

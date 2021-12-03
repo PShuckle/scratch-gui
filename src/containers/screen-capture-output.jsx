@@ -12,10 +12,11 @@ const ScreenCaptureOutput = props => {
                 style={{ "border": "1px solid #999", "width": "98%", "maxWidth": "860px" }}
                 draggable = 'true'
                 onClick = {props.onClick}
-                // onMouseDown = {props.onMouseDown}
-                // onMouseUp = {props.onMouseUp}
+                onMouseDown = {props.onMouseDown}
+                onMouseUp = {props.onMouseUp}
                 onDragStart = {props.onDragStart}
                 onDrag = {props.onDrag}
+                onDragEnd = {props.onDragEnd}
                 onKeyDown = {props.onKeyDown}
                 autoPlay 
                 ref={props.video}></video>

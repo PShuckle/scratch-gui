@@ -147,11 +147,6 @@ class Blocks extends React.Component {
                 eval(codeGenerator.workspaceToCode());
             }
         });
-
-        window.addEventListener('click', (event) => {
-            console.dir(event.target);
-            console.log(event.target.click);
-        })
     }
     shouldComponentUpdate (nextProps, nextState) {
         return (

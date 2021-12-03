@@ -110,44 +110,56 @@ const ClassroomGUI = props => {
     function handleClick(event) {
         const clickLocation = getClickProportion(event);
 
-        socketRef.current.emit('click', {
+        socketRef.current.emit('mouse', {
             studentID: activeStudent.current,
             x: clickLocation.x,
-            y: clickLocation.y
+            y: clickLocation.y,
+            type: 'click'
         });
+    }
+
+    function handleMouseDown(event) {
+        const clickLocation = getClickProportion(event);
+
+        socketRef.current.emit('mouse', {
+            studentID: activeStudent.current,
+            x: clickLocation.x,
+            y: clickLocation.y,
+            type: 'mousedown'
+        })
+
     }
 
     function handleMouseUp(event) {
         const clickLocation = getClickProportion(event);
 
-        socketRef.current.emit('mouseUp', {
+        socketRef.current.emit('mouse', {
             studentID: activeStudent.current,
             x: clickLocation.x,
-            y: clickLocation.y
+            y: clickLocation.y,
+            type: 'mouseup'
         });
     }
 
     function handleDrag(event) {
         const clickLocation = getClickProportion(event);
 
-        socketRef.current.emit('drag', {
+        socketRef.current.emit('mouse', {
             studentID: activeStudent.current,
             x: clickLocation.x,
-            y: clickLocation.y
+            y: clickLocation.y,
+            type: 'mousemove'
         });
     }
 
     function handleDragStart(event) {
         event.dataTransfer.setDragImage(new Image(), 0, 0);
-        const clickLocation = getClickProportion(event);
+        
+        handleMouseDown(event);
+    }
 
-        console.log('hi');
-
-        socketRef.current.emit('dragStart', {
-            studentID: activeStudent.current,
-            x: clickLocation.x,
-            y: clickLocation.y
-        })
+    function handleDragEnd(event) {
+        handleMouseUp(event);
     }
 
     function getClickProportion(event) {
@@ -157,9 +169,6 @@ const ClassroomGUI = props => {
 
         const xProportion = (event.clientX - dimensions.x) / dimensions.width;
         const yProportion = (event.clientY - dimensions.y) / dimensions.height;
-
-        console.log(xProportion);
-        console.log(yProportion);
 
         return ({ x: xProportion, y: yProportion });
     }
@@ -180,9 +189,11 @@ const ClassroomGUI = props => {
             <ScreenCaptureOutput
                 video={studentVideo}
                 onClick={handleClick}
+                onMouseDown={handleMouseDown}
                 onMouseUp={handleMouseUp}
                 onDrag={handleDrag}
                 onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
                 onKeyDown={handleKeyPress}>
             </ScreenCaptureOutput>
             <p>{roomID}</p>
