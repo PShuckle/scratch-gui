@@ -54,6 +54,18 @@ io.on("connection", socket => {
     socket.on("ice-candidate", incoming => {
         io.to(incoming.target).emit('ice-candidate', incoming.candidate);
     });
+
+    socket.on('click', clickEvent => {
+        io.to(clickEvent.studentID).emit('click', {x: clickEvent.x, y: clickEvent.y});
+    })
+
+    socket.on('dragStart', clickEvent => {
+        io.to(clickEvent.studentID).emit('dragStart', {x: clickEvent.x, y: clickEvent.y});
+    })
+
+    socket.on('key', keyEvent => {
+        io.to(keyEvent.studentID).emit('key', {key: keyEvent.key, code: keyEvent.code});
+    })
 });
 
 server.listen(8000, () => console.log('server is running on port 8000'));

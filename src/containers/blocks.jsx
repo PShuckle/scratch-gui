@@ -3,7 +3,7 @@ import debounce from 'lodash.debounce';
 import defaultsDeep from 'lodash.defaultsdeep';
 import makeToolboxXML from '../lib/make-toolbox-xml';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React from 'react';
 import VMScratchBlocks from '../lib/blocks';
 import VM from 'scratch-vm';
 
@@ -147,6 +147,11 @@ class Blocks extends React.Component {
                 eval(codeGenerator.workspaceToCode());
             }
         });
+
+        window.addEventListener('click', (event) => {
+            console.dir(event.target);
+            console.log(event.target.click);
+        })
     }
     shouldComponentUpdate (nextProps, nextState) {
         return (
