@@ -134,19 +134,24 @@ const ScreenCapture = props => {
 
     function handleMouseEvent(event) {
 
+        var bubbles = true;
+
         const x = event.x * window.innerWidth;
         const y = event.y * window.innerHeight;
 
-        if (!document.elementFromPoint(x,y)) {
+        var element = document.elementFromPoint(x,y);
+
+        if (!element) {
             return;
         }
 
-        document.elementFromPoint(x, y).dispatchEvent(new MouseEvent(event.type,
+        element.dispatchEvent(new MouseEvent(event.type,
             {
                 clientX: x,
                 clientY: y,
-                bubbles: true,
-                cancelable: true
+                bubbles: bubbles,
+                cancelable: true,
+                composed: true
             })
         );
     }

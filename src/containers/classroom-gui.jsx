@@ -154,8 +154,6 @@ const ClassroomGUI = props => {
 
     function handleDragStart(event) {
         event.dataTransfer.setDragImage(new Image(), 0, 0);
-        
-        handleMouseDown(event);
     }
 
     function handleDragEnd(event) {
