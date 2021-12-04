@@ -108,6 +108,11 @@ const ClassroomGUI = props => {
     }
 
     function handleClick(event) {
+        const video = document.getElementById('video');
+        video.focus();
+
+        console.log(document.activeElement)
+
         const clickLocation = getClickProportion(event);
 
         socketRef.current.emit('mouse', {

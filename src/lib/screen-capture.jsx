@@ -151,6 +151,10 @@ const ScreenCapture = props => {
 
     function handleKeyEvent(event) {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: event.key, code: event.code }));
+
+        if (document.activeElement.classList.contains('blocklyHtmlInput')) {
+            document.activeElement.value += event.key;
+        }
     }
 
     function handleWheelEvent(event) {

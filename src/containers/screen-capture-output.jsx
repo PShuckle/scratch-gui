@@ -9,6 +9,7 @@ const ScreenCaptureOutput = props => {
     return (
         <Box>
             <video id="video"
+                tabIndex = '-1'
                 style={{ "border": "1px solid #999", "width": "98%", "maxWidth": "860px" }}
                 draggable = 'true'
                 onClick = {props.onClick}
