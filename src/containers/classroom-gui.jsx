@@ -180,6 +180,21 @@ const ClassroomGUI = props => {
         } );
     }
 
+    function handleWheel(event) {
+        const scrollLocation = getClickProportion(event);
+
+        socketRef.current.emit('wheel', {
+            studentID: activeStudent.current,
+            x: scrollLocation.x,
+            y: scrollLocation.y,
+            deltaX: event.deltaX,
+            deltaY: event.deltaY,
+            deltaZ: event.deltaZ,
+            deltaMode: event.deltaMode
+        } );
+
+    }
+
     return (
         <Box>
             <Dropdown></Dropdown>
@@ -192,7 +207,8 @@ const ClassroomGUI = props => {
                 onDrag={handleDrag}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                onKeyDown={handleKeyPress}>
+                onKeyDown={handleKeyPress}
+                onWheel={handleWheel}>
             </ScreenCaptureOutput>
             <p>{roomID}</p>
         </Box>

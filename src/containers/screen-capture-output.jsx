@@ -18,6 +18,7 @@ const ScreenCaptureOutput = props => {
                 onDrag = {props.onDrag}
                 onDragEnd = {props.onDragEnd}
                 onKeyDown = {props.onKeyDown}
+                onWheel = {props.onWheel}
                 autoPlay 
                 ref={props.video}></video>
         </Box >

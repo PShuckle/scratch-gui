@@ -24,13 +24,9 @@ const ScreenCapture = props => {
 
         socketRef.current.on('mouse', handleMouseEvent);
 
-        // socketRef.current.on('click', handleClickEvent);
-
-        // socketRef.current.on('dragStart', handleDragStartEvent);
-
-        // socketRef.current.on('drag', handleDragEvent);
-
         socketRef.current.on('key', handleKeyEvent);
+
+        socketRef.current.on('wheel', handleWheelEvent);
 
     }, []);
 
@@ -133,9 +129,6 @@ const ScreenCapture = props => {
     }
 
     function handleMouseEvent(event) {
-
-        var bubbles = true;
-
         const x = event.x * window.innerWidth;
         const y = event.y * window.innerHeight;
 
@@ -149,7 +142,7 @@ const ScreenCapture = props => {
             {
                 clientX: x,
                 clientY: y,
-                bubbles: bubbles,
+                bubbles: true,
                 cancelable: true,
                 composed: true
             })
@@ -157,8 +150,32 @@ const ScreenCapture = props => {
     }
 
     function handleKeyEvent(event) {
-        console.log(event.code);
         window.dispatchEvent(new KeyboardEvent('keydown', { key: event.key, code: event.code }));
+    }
+
+    function handleWheelEvent(event) {
+        const x = event.x * window.innerWidth;
+        const y = event.y * window.innerHeight;
+
+        var element = document.elementFromPoint(x,y);
+
+        if (!element) {
+            return;
+        }
+
+        element.dispatchEvent(new WheelEvent('wheel',
+            {
+                clientX: x,
+                clientY: y,
+                deltaX: event.deltaX,
+                deltaY: event.deltaY,
+                deltaZ: event.deltaZ,
+                deltaMode: event.deltaMode,
+                bubbles: true,
+                cancelable: true,
+                composed: true
+            })
+        );
     }
 
     return (

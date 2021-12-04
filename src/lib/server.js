@@ -71,6 +71,10 @@ io.on("connection", socket => {
             key: keyEvent.key,
             code: keyEvent.code
         });
+    });
+
+    socket.on('wheel', wheelEvent => {
+        io.to(wheelEvent.studentID).emit('wheel', wheelEvent);
     })
 });
 
