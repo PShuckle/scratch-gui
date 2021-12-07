@@ -153,7 +153,13 @@ const ScreenCapture = props => {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: event.key, code: event.code }));
 
         if (document.activeElement.classList.contains('blocklyHtmlInput')) {
-            document.activeElement.value += event.key;
+            if (event.key === 'Backspace') {
+                var string = document.activeElement.value;
+                document.activeElement.value = string.substring(0, string.length - 1);
+            }
+            else {
+                document.activeElement.value += event.key;
+            }
         }
     }
 
