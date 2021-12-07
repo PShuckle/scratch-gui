@@ -1,44 +1,127 @@
 import React, {
-    useRef,
     createRef,
+    useRef,
     useEffect
 } from "react";
 
-
+import io from "socket.io-client";
 import { nanoid } from 'nanoid';
-
-import Socket from "../lib/socket.js";
 
 import Dropdown from '../components/dropdown/dropdown.jsx';
 import Box from '../components/box/box.jsx';
 import ScreenCaptureOutput from '../containers/screen-capture-output.jsx';
-import ScreenCaptureThumbnail from "./screen-capture-thumbnail.jsx";
+import ScreenCaptureThumbnail from '../containers/screen-capture-thumbnail.jsx';
+
+const socketRef = createRef();
+const studentVideo = createRef();
+const activeStudent = createRef();
+const connectingStudent = createRef();
+const peerRef = createRef();
+
+const studentVideos = {};
+const roomID = nanoid();
 
 class ClassroomGUI extends React.Component {
     constructor() {
         super();
+        this.state = {studentVideos: {}}
+    }
 
-        this.studentVideos = {};
-        this.roomID = nanoid();
+    componentDidMount() {
+        socketRef.current = io('http://localhost:8000');
+        socketRef.current.emit('create room', roomID);
 
-        this.state = { studentVideos: this.studentVideos };
+        socketRef.current.on('user joined', this.handleUserJoin);
+
+        socketRef.current.on('offer', this.handleRecieveCall);
+
+        socketRef.current.on('ice-candidate', this.handleNewICECandidateMsg);
+
+    };
+
+    handleUserJoin(userData) {
+        connectingStudent.current = userData.id;
+    };
+
+    handleRecieveCall(incoming) {
+        peerRef.current = createPeer();
+        const desc = new RTCSessionDescription(incoming.sdp);
+        peerRef.current.setRemoteDescription(desc).then(() => {
+            return peerRef.current.createAnswer();
+        }).then(answer => {
+            return peerRef.current.setLocalDescription(answer);
+        }).then(() => {
+            const payload = {
+                target: incoming.caller,
+                caller: socketRef.current.id,
+                sdp: peerRef.current.localDescription
+            }
+            socketRef.current.emit('answer', payload);
+        })
+
+        function createPeer() {
+            const peer = new RTCPeerConnection({
+                iceServers: [
+                    {
+                        urls: "stun:stun.stunprotocol.org"
+                    },
+                    {
+                        urls: 'turn:numb.viagenie.ca',
+                        credential: 'muazkh',
+                        username: 'webrtc@live.com'
+                    },
+                ]
+            });
+
+            peer.onicecandidate = handleICECandidateEvent;
+            peer.ontrack = handleTrackEvent;
+
+            return peer;
+        };
+
+        function handleICECandidateEvent(e) {
+            if (e.candidate) {
+                const payload = {
+                    target: connectingStudent.current,
+                    candidate: e.candidate,
+                }
+                socketRef.current.emit("ice-candidate", payload);
+            }
+        }
+
+        function handleTrackEvent(e) {
+            studentVideos[connectingStudent.current] = e.streams[0];
+        };
+    };
+
+    handleNewICECandidateMsg(incoming) {
+        const candidate = new RTCIceCandidate(incoming);
+
+        peerRef.current.addIceCandidate(candidate)
+            .catch(e => console.log(e));
+    };
+
+    displayThumbnailView = () => {
+        this.setState({studentVideos: studentVideos});
     }
 
     displayStudentVideo() {
         const dropdown = document.getElementById('dropdown');
         const studentID = dropdown.value;
-        this.activeStudent = studentID;
-        this.studentVideo.srcObject = this.studentVideos[studentID];
+        activeStudent.current = studentID;
+        studentVideo.current.srcObject = studentVideos[studentID];
     }
 
     handleClick(event) {
         const video = document.getElementById('video');
         video.focus();
 
+        console.log(document.activeElement)
+
         const clickLocation = getClickProportion(event);
 
-        this.socketRef.emit('mouse', {
-            studentID: this.activeStudent,
+        socketRef.current.emit('mouse', {
+            studentID: activeStudent.current,
             x: clickLocation.x,
             y: clickLocation.y,
             type: 'click'
@@ -48,8 +131,8 @@ class ClassroomGUI extends React.Component {
     handleMouseDown(event) {
         const clickLocation = getClickProportion(event);
 
-        this.socketRef.emit('mouse', {
-            studentID: this.activeStudent,
+        socketRef.current.emit('mouse', {
+            studentID: activeStudent.current,
             x: clickLocation.x,
             y: clickLocation.y,
             type: 'mousedown'
@@ -60,8 +143,8 @@ class ClassroomGUI extends React.Component {
     handleMouseUp(event) {
         const clickLocation = getClickProportion(event);
 
-        this.socketRef.emit('mouse', {
-            studentID: this.activeStudent,
+        socketRef.current.emit('mouse', {
+            studentID: activeStudent.current,
             x: clickLocation.x,
             y: clickLocation.y,
             type: 'mouseup'
@@ -71,8 +154,8 @@ class ClassroomGUI extends React.Component {
     handleDrag(event) {
         const clickLocation = getClickProportion(event);
 
-        this.socketRef.emit('mouse', {
-            studentID: this.activeStudent,
+        socketRef.current.emit('mouse', {
+            studentID: activeStudent.current,
             x: clickLocation.x,
             y: clickLocation.y,
             type: 'mousemove'
@@ -100,8 +183,8 @@ class ClassroomGUI extends React.Component {
 
     handleKeyPress(event) {
         const keyEvent = event.nativeEvent;
-        this.socketRef.emit('key', {
-            studentID: this.activeStudent,
+        socketRef.current.emit('key', {
+            studentID: activeStudent.current,
             key: keyEvent.key,
             code: keyEvent.code
         });
@@ -110,8 +193,8 @@ class ClassroomGUI extends React.Component {
     handleWheel(event) {
         const scrollLocation = getClickProportion(event);
 
-        this.socketRef.emit('wheel', {
-            studentID: this.activeStudent,
+        socketRef.current.emit('wheel', {
+            studentID: activeStudent.current,
             x: scrollLocation.x,
             y: scrollLocation.y,
             deltaX: event.deltaX,
@@ -126,25 +209,35 @@ class ClassroomGUI extends React.Component {
         return (
             <Box>
                 <Dropdown></Dropdown>
-                {/* <button onClick={displayStudentVideo}>Play video</button> */}
-                <Socket roomID={this.roomID}/>
-                    
-                    {/* <ScreenCaptureOutput
-                        video={studentVideo}
-                        onClick={handleClick}
-                        onMouseDown={handleMouseDown}
-                        onMouseUp={handleMouseUp}
-                        onDrag={handleDrag}
-                        onDragStart={handleDragStart}
-                        onDragEnd={handleDragEnd}
-                        onKeyDown={handleKeyPress}
-                        onWheel={handleWheel}>
-                    </ScreenCaptureOutput> */}
-                
-                <p>RoomID: {this.roomID}</p>
+                <button onClick={this.displayThumbnailView}>Play video</button>
+                <div>
+                    {Object.keys(this.state.studentVideos).map(function (key) {
+                        studentVideo.current.srcObject = studentVideos[key];
+                        return (
+                            <ScreenCaptureThumbnail
+                                name={key}
+                                video={video}>
+                            </ScreenCaptureThumbnail>
+                        );
+                    })}
+                </div>
+                {/* <ScreenCaptureOutput
+                    video={studentVideo}
+                    onClick={handleClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onDrag={handleDrag}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onKeyDown={handleKeyPress}
+                    onWheel={handleWheel}>
+                </ScreenCaptureOutput> */}
+                <p>{roomID}</p>
             </Box>
         );
+
     }
+
 
 
 }
