@@ -19,12 +19,13 @@ const connectingStudent = createRef();
 const peerRef = createRef();
 
 const studentVideos = {};
+const studentVideoRefs = {};
 const roomID = nanoid();
 
 class ClassroomGUI extends React.Component {
     constructor() {
         super();
-        this.state = {studentVideos: {}}
+        this.state = { studentVideos: {} }
     }
 
     componentDidMount() {
@@ -41,6 +42,7 @@ class ClassroomGUI extends React.Component {
 
     handleUserJoin(userData) {
         connectingStudent.current = userData.id;
+        studentVideoRefs[userData.id] = createRef();
     };
 
     handleRecieveCall(incoming) {
@@ -102,7 +104,12 @@ class ClassroomGUI extends React.Component {
     };
 
     displayThumbnailView = () => {
-        this.setState({studentVideos: studentVideos});
+        this.setState({ studentVideos: studentVideos }, () => {
+            Object.keys(studentVideos).map(id => {
+                const video = studentVideos[id];
+                studentVideoRefs[id].current.srcObject = video;
+            });
+        });
     }
 
     displayStudentVideo() {
@@ -212,11 +219,10 @@ class ClassroomGUI extends React.Component {
                 <button onClick={this.displayThumbnailView}>Play video</button>
                 <div>
                     {Object.keys(this.state.studentVideos).map(function (key) {
-                        studentVideo.current.srcObject = studentVideos[key];
                         return (
                             <ScreenCaptureThumbnail
                                 name={key}
-                                video={video}>
+                                video={studentVideoRefs[key]}>
                             </ScreenCaptureThumbnail>
                         );
                     })}
@@ -232,7 +238,7 @@ class ClassroomGUI extends React.Component {
                     onKeyDown={handleKeyPress}
                     onWheel={handleWheel}>
                 </ScreenCaptureOutput> */}
-                <p>{roomID}</p>
+                <p>Room ID: {roomID}</p>
             </Box>
         );
 
