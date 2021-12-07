@@ -13,7 +13,7 @@ import ScreenCaptureOutput from '../containers/screen-capture-output.jsx';
 import ScreenCaptureThumbnail from '../containers/screen-capture-thumbnail.jsx';
 
 const socketRef = createRef();
-const studentVideo = createRef();
+const studentVideoFullScreen = createRef();
 const activeStudent = createRef();
 const connectingStudent = createRef();
 const peerRef = createRef();
@@ -25,7 +25,7 @@ const roomID = nanoid();
 class ClassroomGUI extends React.Component {
     constructor() {
         super();
-        this.state = { studentVideos: {} }
+        this.state = { studentVideos: {}, activeVideo: null }
     }
 
     componentDidMount() {
@@ -104,7 +104,7 @@ class ClassroomGUI extends React.Component {
     };
 
     displayThumbnailView = () => {
-        this.setState({ studentVideos: studentVideos }, () => {
+        this.setState({ studentVideos: studentVideos, activeVideo: null }, () => {
             Object.keys(studentVideos).map(id => {
                 const video = studentVideos[id];
                 studentVideoRefs[id].current.srcObject = video;
@@ -112,20 +112,18 @@ class ClassroomGUI extends React.Component {
         });
     }
 
-    displayStudentVideo() {
-        const dropdown = document.getElementById('dropdown');
-        const studentID = dropdown.value;
-        activeStudent.current = studentID;
-        studentVideo.current.srcObject = studentVideos[studentID];
+    displayStudentVideo = (studentId) => {
+        this.setState({ studentVideos: studentVideos, activeVideo: studentId }, () =>{
+            activeStudent.current = studentId;
+            studentVideoFullScreen.current.srcObject = studentVideos[studentId];
+        });
     }
 
-    handleClick(event) {
+    handleClick = (event) => {
         const video = document.getElementById('video');
         video.focus();
 
-        console.log(document.activeElement)
-
-        const clickLocation = getClickProportion(event);
+        const clickLocation = this.getClickProportion(event);
 
         socketRef.current.emit('mouse', {
             studentID: activeStudent.current,
@@ -135,8 +133,8 @@ class ClassroomGUI extends React.Component {
         });
     }
 
-    handleMouseDown(event) {
-        const clickLocation = getClickProportion(event);
+    handleMouseDown = (event) => {
+        const clickLocation = this.getClickProportion(event);
 
         socketRef.current.emit('mouse', {
             studentID: activeStudent.current,
@@ -147,8 +145,8 @@ class ClassroomGUI extends React.Component {
 
     }
 
-    handleMouseUp(event) {
-        const clickLocation = getClickProportion(event);
+    handleMouseUp = (event) => {
+        const clickLocation = this.getClickProportion(event);
 
         socketRef.current.emit('mouse', {
             studentID: activeStudent.current,
@@ -159,7 +157,7 @@ class ClassroomGUI extends React.Component {
     }
 
     handleDrag(event) {
-        const clickLocation = getClickProportion(event);
+        const clickLocation = this.getClickProportion(event);
 
         socketRef.current.emit('mouse', {
             studentID: activeStudent.current,
@@ -174,10 +172,10 @@ class ClassroomGUI extends React.Component {
     }
 
     handleDragEnd(event) {
-        handleMouseUp(event);
+        this.handleMouseUp(event);
     }
 
-    getClickProportion(event) {
+    getClickProportion = (event) => {
         const video = document.getElementById('video');
 
         const dimensions = video.getBoundingClientRect();
@@ -198,7 +196,7 @@ class ClassroomGUI extends React.Component {
     }
 
     handleWheel(event) {
-        const scrollLocation = getClickProportion(event);
+        const scrollLocation = this.getClickProportion(event);
 
         socketRef.current.emit('wheel', {
             studentID: activeStudent.current,
@@ -213,31 +211,45 @@ class ClassroomGUI extends React.Component {
     }
 
     render() {
+        var videoDisplay;
+        if (this.state.activeVideo == null) {
+            var videos = [];
+            for (let key in this.state.studentVideos) {
+                videos.push(
+                    <ScreenCaptureThumbnail
+                        name={key}
+                        video={studentVideoRefs[key]}
+                        onClick={() => this.displayStudentVideo(key)}
+                    >
+                    </ScreenCaptureThumbnail>
+                )
+            }
+            videoDisplay = videos;
+        }
+        else {
+            videoDisplay =
+                <ScreenCaptureOutput
+                    video={studentVideoFullScreen}
+                    onClick={(e) => this.handleClick(e)}
+                    onMouseDown={(e) => this.handleMouseDown(e)}
+                    onMouseUp={(e) => this.handleMouseUp(e)}
+                    onDrag={(e) => this.handleDrag(e)}
+                    onDragStart={(e) => this.handleDragStart(e)}
+                    onDragEnd={(e) => this.handleDragEnd(e)}
+                    onKeyDown={(e) => this.handleKeyPress(e)}
+                    onWheel={(e) => this.handleWheel(e)}>
+                </ScreenCaptureOutput>
+        }
+
         return (
             <Box>
                 <Dropdown></Dropdown>
-                <button onClick={this.displayThumbnailView}>Play video</button>
+                <button onClick={this.displayThumbnailView}>Show Thumbnails</button>
                 <div>
-                    {Object.keys(this.state.studentVideos).map(function (key) {
-                        return (
-                            <ScreenCaptureThumbnail
-                                name={key}
-                                video={studentVideoRefs[key]}>
-                            </ScreenCaptureThumbnail>
-                        );
-                    })}
+                    {
+                        videoDisplay
+                    }
                 </div>
-                {/* <ScreenCaptureOutput
-                    video={studentVideo}
-                    onClick={handleClick}
-                    onMouseDown={handleMouseDown}
-                    onMouseUp={handleMouseUp}
-                    onDrag={handleDrag}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    onKeyDown={handleKeyPress}
-                    onWheel={handleWheel}>
-                </ScreenCaptureOutput> */}
                 <p>Room ID: {roomID}</p>
             </Box>
         );

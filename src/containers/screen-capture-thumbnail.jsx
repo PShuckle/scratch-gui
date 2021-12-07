@@ -8,7 +8,11 @@ import ScreenThumbnailVideo from "../components/screen-thumbnail-video/screen-th
 const ScreenCaptureThumbnail = props => {
     return (
         <Box>
-            <ScreenThumbnailVideo video={props.video}></ScreenThumbnailVideo>
+            <ScreenThumbnailVideo
+                video={props.video}
+                onClick={props.onClick}
+            >
+            </ScreenThumbnailVideo>
             <p>{props.name}</p>
         </Box>
     )
