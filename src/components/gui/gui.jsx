@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import omit from 'lodash.omit';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useRef} from 'react';
 import { defineMessages, FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { connect } from 'react-redux';
 import MediaQuery from 'react-responsive';
@@ -137,6 +137,12 @@ const GUIComponent = props => {
 
     if (isRendererSupported === null) {
         isRendererSupported = Renderer.isSupported();
+    }
+
+    const workspaceRef = useRef();
+
+    function setWorkspace(workspace) {
+        workspaceRef.current = workspace;
     }
 
     return (<MediaQuery minWidth={layout.fullSizeMinWidth}>{isFullSize => {
@@ -307,6 +313,7 @@ const GUIComponent = props => {
                                             options={{
                                                 media: `${basePath}static/blocks-media/`
                                             }}
+                                            setworkspace={setWorkspace}
                                             stageSize={stageSize}
                                             vm={vm}
                                         />
@@ -328,7 +335,7 @@ const GUIComponent = props => {
                                         <Watermark />
                                     </Box>
                                     <Box className={styles.shareScreenButton}>
-                                        <ScreenCaptureButton></ScreenCaptureButton>
+                                        <ScreenCaptureButton workspace={workspaceRef}/>
                                     </Box>
                                 </TabPanel>
                                 <TabPanel className={tabClassNames.tabPanel}>

@@ -6,6 +6,7 @@ import React, {
 
 import io from "socket.io-client";
 import { nanoid } from 'nanoid';
+import {parse, stringify, toJSON, fromJSON} from 'flatted';
 
 import Dropdown from '../components/dropdown/dropdown.jsx';
 import Box from '../components/box/box.jsx';
@@ -17,15 +18,20 @@ const studentVideoFullScreen = createRef();
 const activeStudent = createRef();
 const connectingStudent = createRef();
 const peerRef = createRef();
+const dataChannel = createRef();
 
 const studentVideos = {};
-const studentVideoRefs = {};
+const studentBlocks = {};
+const studentWorkspaceRefs = {};
 const roomID = nanoid();
 
 class ClassroomGUI extends React.Component {
     constructor() {
         super();
         this.state = { studentVideos: {}, activeVideo: null }
+        this.handleRecieveCall = this.handleRecieveCall.bind(this);
+        this.handleUserJoin = this.handleUserJoin.bind(this);
+        this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this);
     }
 
     componentDidMount() {
@@ -42,11 +48,19 @@ class ClassroomGUI extends React.Component {
 
     handleUserJoin(userData) {
         connectingStudent.current = userData.id;
-        studentVideoRefs[userData.id] = createRef();
+        studentWorkspaceRefs[userData.id] = createRef();
     };
 
     handleRecieveCall(incoming) {
         peerRef.current = createPeer();
+        peerRef.current.addEventListener('datachannel', event => {
+            dataChannel.current = event.channel;
+            dataChannel.current.addEventListener('message', (event) => {
+                const eventObject = JSON.parse(event.data);
+                studentWorkspaceRefs[eventObject.sender].current = eventObject.blocksList;
+                this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
+            })
+        });
         const desc = new RTCSessionDescription(incoming.sdp);
         peerRef.current.setRemoteDescription(desc).then(() => {
             return peerRef.current.createAnswer();
@@ -104,16 +118,17 @@ class ClassroomGUI extends React.Component {
     };
 
     displayThumbnailView = () => {
-        this.setState({ studentVideos: studentVideos, activeVideo: null }, () => {
-            Object.keys(studentVideos).map(id => {
-                const video = studentVideos[id];
-                studentVideoRefs[id].current.srcObject = video;
-            });
+        // Object.keys(studentBlocks).map(id => {
+        //     const blocks = studentBlocks[id];
+        //     studentWorkspaceRefs[id].current = blocks;
+        // });
+        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null }, () => {
+
         });
     }
 
     displayStudentVideo = (studentId) => {
-        this.setState({ studentVideos: studentVideos, activeVideo: studentId }, () =>{
+        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () =>{
             activeStudent.current = studentId;
             studentVideoFullScreen.current.srcObject = studentVideos[studentId];
         });
@@ -218,7 +233,7 @@ class ClassroomGUI extends React.Component {
                 videos.push(
                     <ScreenCaptureThumbnail
                         name={key}
-                        video={studentVideoRefs[key]}
+                        blocks={this.state.studentVideos[key].current}
                         onClick={() => this.displayStudentVideo(key)}
                     >
                     </ScreenCaptureThumbnail>
