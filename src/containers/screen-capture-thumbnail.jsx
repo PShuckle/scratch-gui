@@ -35,10 +35,15 @@ class ScreenCaptureThumbnail extends React.Component {
         }
         this.workspace = this.ScratchBlocks.inject(blocksView, options);
 
-        console.log(this.workspace);
-
         this.workspace.toolbox_.dispose();
         this.workspace.toolbox_ = null;
+
+        for (let i = 0; i < 5; i++) {
+            this.workspace.zoomCenter(-1);
+        };
+
+
+
 
         this.displayBlocks();
     }
@@ -50,10 +55,13 @@ class ScreenCaptureThumbnail extends React.Component {
     }
 
     displayBlocks() {
+        console.log(this.props.blocks);
         this.workspace.clear();
         this.blocks = this.props.blocks;
         for (var blockId in this.blocks) {
+            console.log('initialising');
             var block = this.workspace.newBlock(this.blocks[blockId].type, blockId);
+            console.log(block);
             block.initSvg();
             block.render();
         }
@@ -67,6 +75,8 @@ class ScreenCaptureThumbnail extends React.Component {
             for (var i in children) {
                 var childId = children[i];
                 var child = this.workspace.blockDB_[childId];
+                console.log(this.workspace.blockDB_);
+                console.log(childId);
                 block.childBlocks_.push(child);
                 if (child.previousConnection != null) {
                     block.nextConnection.connect(child.previousConnection);
@@ -84,18 +94,32 @@ class ScreenCaptureThumbnail extends React.Component {
             }
             else {
                 block.parentBlock_.svgGroup_.appendChild(block.svgGroup_);
+
+                try {
+                    this.workspace.removeTopBlock(block);
+                } catch (e) {
+                    console.log(e);
+                }
+
+                
             }
+
+
+            // this.workspace.cleanUp();
         }
+        console.log(this.workspace.topBlocks_);
     }
 
     render() {
         return (
             <Box>
-                <ScreenThumbnailWorkspace
-                    workspaceRef={this.blocksViewRef}
-                    onClick={this.onClick}
-                />
-                <p>{this.name}</p>
+                <div onClick={this.onClick}>
+                    <ScreenThumbnailWorkspace
+                        workspaceRef={this.blocksViewRef}
+                        onClick={this.onClick}
+                    />
+                    <p>{this.name}</p>
+                </div>
             </Box>
         )
     }

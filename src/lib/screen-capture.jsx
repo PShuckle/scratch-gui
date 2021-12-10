@@ -3,8 +3,9 @@ import React, {
     useEffect
 } from "react";
 import io from "socket.io-client";
-import {parse, stringify, toJSON, fromJSON} from 'flatted';
+import { parse, stringify, toJSON, fromJSON } from 'flatted';
 import adapter from 'webrtc-adapter';
+import { copyWithin } from "react-style-proptype/src/css-properties";
 
 const ScreenCapture = props => {
     const peerRef = useRef();
@@ -62,11 +63,11 @@ const ScreenCapture = props => {
         peerRef.current = createPeer(teacherID);
         dataChannel.current = peerRef.current.createDataChannel({});
         dataChannel.current.addEventListener('open', event => {
-            setInterval(function(){
+            setInterval(function () {
                 streamWorkspaceBlocks()
             }, 100);
         })
-        
+
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
 
@@ -75,32 +76,41 @@ const ScreenCapture = props => {
         const blocksList = {};
         for (var blockid in workspaceBlocks) {
             const block = workspaceBlocks[blockid];
-            const childBlocks_ = [];
-            for (var i in block.childBlocks_) {
-                childBlocks_.push(block.childBlocks_[i].id);
-            }
-            let inputList = {};
-            for (var i in block.inputList) {
-                if (block.inputList[i].connection != null) {
-                    inputList[i] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
+            // if (Object.keys(workspaceBlocks).length == 4) {
+            //     console.log(block);
+            // }
+            if (block.colour_ != '#000000') {
+                const childBlocks_ = [];
+                for (var i in block.childBlocks_) {
+                    var child = block.childBlocks_[i];
+                    if (child.colour_ != '#000000') {
+                        childBlocks_.push(child.id);
+                    }
                 }
-            }
-            var parentBlock_ = null;
-            if (block.parentBlock_) {
-                parentBlock_ = block.parentBlock_.id;
-            }
+                let inputList = {};
+                for (var i in block.inputList) {
+                    if (block.inputList[i].connection != null) {
+                        inputList[i] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
+                    }
+                }
+                var parentBlock_ = null;
+                if (block.parentBlock_) {
+                    if (block.parentBlock_.colour_ != '#000000') {
+                        parentBlock_ = block.parentBlock_.id;
+                    }
+                }
 
-            blocksList[blockid] = { 
-                childBlocks_: childBlocks_,
-                parentBlock_: parentBlock_,
-                inputList: inputList,
-                id: blockid,
-                type: block.type
-            };
-
+                blocksList[blockid] = {
+                    childBlocks_: childBlocks_,
+                    parentBlock_: parentBlock_,
+                    inputList: inputList,
+                    id: blockid,
+                    type: block.type
+                };
+            }
         }
 
-        const eventData = {blocksList: blocksList, sender: socketRef.current.id}
+        const eventData = { blocksList: blocksList, sender: socketRef.current.id }
 
         const json = JSON.stringify(eventData);
         dataChannel.current.send(json);
@@ -177,7 +187,7 @@ const ScreenCapture = props => {
         const x = event.x * window.innerWidth;
         const y = event.y * window.innerHeight;
 
-        var element = document.elementFromPoint(x,y);
+        var element = document.elementFromPoint(x, y);
 
         if (!element) {
             return;
@@ -212,7 +222,7 @@ const ScreenCapture = props => {
         const x = event.x * window.innerWidth;
         const y = event.y * window.innerHeight;
 
-        var element = document.elementFromPoint(x,y);
+        var element = document.elementFromPoint(x, y);
 
         if (!element) {
             return;

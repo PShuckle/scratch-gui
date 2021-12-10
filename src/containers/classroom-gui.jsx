@@ -120,13 +120,7 @@ class ClassroomGUI extends React.Component {
     };
 
     displayThumbnailView = () => {
-        // Object.keys(studentBlocks).map(id => {
-        //     const blocks = studentBlocks[id];
-        //     studentWorkspaceRefs[id].current = blocks;
-        // });
-        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null }, () => {
-
-        });
+        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null });
     }
 
     displayStudentVideo = (studentId) => {
