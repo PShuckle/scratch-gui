@@ -37,6 +37,9 @@ class ScreenCaptureThumbnail extends React.Component {
 
         console.log(this.workspace);
 
+        this.workspace.toolbox_.dispose();
+        this.workspace.toolbox_ = null;
+
         this.displayBlocks();
     }
 
