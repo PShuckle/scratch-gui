@@ -15,31 +15,33 @@ class ScreenCaptureThumbnail extends React.Component {
 
     constructor(props) {
         super(props);
+        console.log(props);
         const vm = new VM();
         this.ScratchBlocks = VMScratchBlocks(vm);
 
-        this.video = props.video;
         this.onClick = props.onClick;
         this.name = props.name;
         this.blocks = props.blocks;
 
         this.workspace = null;
+
+        this.blocksViewRef = createRef();
     }
 
     componentDidMount() {
-        const blocksView = document.getElementsByClassName('screen-thumbnail-workspace_workspace_3PXZH box_box_tWy-0')[0];
+        const blocksView = this.blocksViewRef.current;
         const options = {
             media: './static/blocks-media/'
         }
         this.workspace = this.ScratchBlocks.inject(blocksView, options);
+
+        console.log(this.workspace);
 
         this.displayBlocks();
     }
 
     componentDidUpdate(prevProps) {
         if (!_.isEqual(prevProps.blocks, this.props.blocks)) {
-            console.log(prevProps.blocks);
-            console.log(this.props.blocks);
             this.displayBlocks();
         }
     }
@@ -55,7 +57,6 @@ class ScreenCaptureThumbnail extends React.Component {
 
         for (var blockId in this.workspace.blockDB_) {
             var block = this.workspace.blockDB_[blockId];
-            console.log(block);
             const children = this.blocks[blockId].childBlocks_;
             const inputs = this.blocks[blockId].inputList;
             const parent = this.blocks[blockId].parentBlock_;
@@ -71,13 +72,12 @@ class ScreenCaptureThumbnail extends React.Component {
 
             for (var i in inputs) {
                 var inputBlock = this.workspace.blockDB_[inputs[i]];
-                console.log(block.inputList[i]);
                 block.inputList[i].connection.connect(inputBlock.outputConnection);
             }
 
             block.parentBlock_ = this.workspace.blockDB_[parent];
             if (block.parentBlock_ == null) {
-                document.getElementsByClassName('blocklyBlockCanvas')[0].appendChild(block.svgGroup_);
+                this.workspace.svgBlockCanvas_.appendChild(block.svgGroup_);
             }
             else {
                 block.parentBlock_.svgGroup_.appendChild(block.svgGroup_);
@@ -89,6 +89,7 @@ class ScreenCaptureThumbnail extends React.Component {
         return (
             <Box>
                 <ScreenThumbnailWorkspace
+                    workspaceRef={this.blocksViewRef}
                     onClick={this.onClick}
                 />
                 <p>{this.name}</p>

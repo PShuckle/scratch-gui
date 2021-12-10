@@ -75,7 +75,6 @@ const ScreenCapture = props => {
         const blocksList = {};
         for (var blockid in workspaceBlocks) {
             const block = workspaceBlocks[blockid];
-            console.log(block);
             const childBlocks_ = [];
             for (var i in block.childBlocks_) {
                 childBlocks_.push(block.childBlocks_[i].id);

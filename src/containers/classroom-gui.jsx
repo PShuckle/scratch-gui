@@ -48,7 +48,6 @@ class ClassroomGUI extends React.Component {
 
     handleUserJoin(userData) {
         connectingStudent.current = userData.id;
-        studentWorkspaceRefs[userData.id] = createRef();
     };
 
     handleRecieveCall(incoming) {
@@ -57,6 +56,9 @@ class ClassroomGUI extends React.Component {
             dataChannel.current = event.channel;
             dataChannel.current.addEventListener('message', (event) => {
                 const eventObject = JSON.parse(event.data);
+                if (!studentWorkspaceRefs[eventObject.sender]) {
+                    studentWorkspaceRefs[eventObject.sender] = createRef();
+                }
                 studentWorkspaceRefs[eventObject.sender].current = eventObject.blocksList;
                 this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
             })
@@ -232,6 +234,7 @@ class ClassroomGUI extends React.Component {
             for (let key in this.state.studentVideos) {
                 videos.push(
                     <ScreenCaptureThumbnail
+                        key={key}
                         name={key}
                         blocks={this.state.studentVideos[key].current}
                         onClick={() => this.displayStudentVideo(key)}
