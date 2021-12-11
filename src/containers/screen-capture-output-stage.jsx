@@ -12,12 +12,7 @@ import AppStateHOC from '../lib/app-state-hoc.jsx';
 
 import {setPlayer} from '../reducers/mode';
 
-if (process.env.NODE_ENV === 'production' && typeof window === 'object') {
-    // Warn before navigating away
-    window.onbeforeunload = () => true;
-}
-
-import styles from './player.css';
+import styles from '../playground/player.css';
 
 const Player = ({isPlayerOnly, onSeeInside, projectId}) => (
     <Box className={classNames(isPlayerOnly ? styles.stageOnly : styles.editor)}>
@@ -25,7 +20,7 @@ const Player = ({isPlayerOnly, onSeeInside, projectId}) => (
         <GUI
             canEditTitle
             enableCommunity
-            isPlayerOnly={true}
+            isPlayerOnly={isPlayerOnly}
             projectId={projectId}
         />
     </Box>
@@ -33,6 +28,7 @@ const Player = ({isPlayerOnly, onSeeInside, projectId}) => (
 
 Player.propTypes = {
     isPlayerOnly: PropTypes.bool,
+    onLoad: PropTypes.func,
     onSeeInside: PropTypes.func,
     projectId: PropTypes.string
 };
@@ -42,6 +38,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+    onLoad: () => dispatch(setPlayer(true)),
     onSeeInside: () => dispatch(setPlayer(false))
 });
 
@@ -58,7 +55,4 @@ const WrappedPlayer = compose(
     HashParserHOC
 )(ConnectedPlayer);
 
-const appTarget = document.createElement('div');
-document.body.appendChild(appTarget);
-
-ReactDOM.render(<WrappedPlayer isPlayerOnly />, appTarget);
+export default WrappedPlayer;

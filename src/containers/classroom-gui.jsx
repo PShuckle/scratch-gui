@@ -224,6 +224,7 @@ class ClassroomGUI extends React.Component {
     render() {
         var videoDisplay;
         if (this.state.activeVideo == null) {
+            console.log('dfghdfh');
             var videos = [];
             for (let key in this.state.studentVideos) {
                 videos.push(
@@ -239,6 +240,7 @@ class ClassroomGUI extends React.Component {
             videoDisplay = videos;
         }
         else {
+            console.log('sasd');
             videoDisplay =
                 <ScreenCaptureOutput
                     video={studentVideoFullScreen}

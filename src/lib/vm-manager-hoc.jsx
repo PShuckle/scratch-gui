@@ -52,6 +52,7 @@ const vmManagerHOC = function (WrappedComponent) {
             }
         }
         loadProject () {
+            console.log(this.props);
             return this.props.vm.loadProject(this.props.projectData)
                 .then(() => {
                     this.props.onLoadedProject(this.props.loadingState, this.props.canSave);
