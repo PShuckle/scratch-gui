@@ -55,13 +55,10 @@ class ScreenCaptureThumbnail extends React.Component {
     }
 
     displayBlocks() {
-        console.log(this.props.blocks);
         this.workspace.clear();
         this.blocks = this.props.blocks;
         for (var blockId in this.blocks) {
-            console.log('initialising');
             var block = this.workspace.newBlock(this.blocks[blockId].type, blockId);
-            console.log(block);
             block.initSvg();
             block.render();
         }
@@ -69,23 +66,32 @@ class ScreenCaptureThumbnail extends React.Component {
         for (var blockId in this.workspace.blockDB_) {
             var block = this.workspace.blockDB_[blockId];
             const children = this.blocks[blockId].childBlocks_;
+            const nextBlock = this.blocks[blockId].nextBlock;
             const inputs = this.blocks[blockId].inputList;
             const parent = this.blocks[blockId].parentBlock_;
 
             for (var i in children) {
                 var childId = children[i];
                 var child = this.workspace.blockDB_[childId];
-                console.log(this.workspace.blockDB_);
-                console.log(childId);
                 block.childBlocks_.push(child);
-                if (child.previousConnection != null) {
-                    block.nextConnection.connect(child.previousConnection);
-                }
+            }
+
+            if (nextBlock) {
+                block.nextConnection.connect(this.workspace.blockDB_[nextBlock].previousConnection);
             }
 
             for (var i in inputs) {
-                var inputBlock = this.workspace.blockDB_[inputs[i]];
-                block.inputList[i].connection.connect(inputBlock.outputConnection);
+                var input = inputs[i];
+                if (this.workspace.blockDB_[input.block]) {
+                    var inputBlock = this.workspace.blockDB_[input.block];
+                    if (input.name === 'SUBSTACK') {
+                        block.inputList[i].connection.connect_(inputBlock.previousConnection);
+                    }
+                    else {
+                        block.inputList[i].connection.connect(inputBlock.outputConnection);
+                    }
+                }
+
             }
 
             block.parentBlock_ = this.workspace.blockDB_[parent];
@@ -101,11 +107,11 @@ class ScreenCaptureThumbnail extends React.Component {
                     console.log(e);
                 }
 
-                
+
             }
 
 
-            // this.workspace.cleanUp();
+            this.workspace.cleanUp();
         }
         console.log(this.workspace.topBlocks_);
     }

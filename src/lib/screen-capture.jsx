@@ -76,9 +76,7 @@ const ScreenCapture = props => {
         const blocksList = {};
         for (var blockid in workspaceBlocks) {
             const block = workspaceBlocks[blockid];
-            // if (Object.keys(workspaceBlocks).length == 4) {
-            //     console.log(block);
-            // }
+            // console.log(block);
             if (block.colour_ != '#000000') {
                 const childBlocks_ = [];
                 for (var i in block.childBlocks_) {
@@ -87,10 +85,27 @@ const ScreenCapture = props => {
                         childBlocks_.push(child.id);
                     }
                 }
+
+                var nextBlock = null;
+                try {
+                    nextBlock = block.nextConnection.targetConnection.sourceBlock_;
+                    if (nextBlock.colour_ != '#000000') {
+                        nextBlock = nextBlock.id;
+                    }
+                    else {
+                        nextBlock = null;
+                    }
+                }
+                catch {
+
+                }
+                
                 let inputList = {};
                 for (var i in block.inputList) {
-                    if (block.inputList[i].connection != null) {
-                        inputList[i] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
+                    if (block.inputList[i].connection != null && block.inputList[i].connection.targetConnection) {
+                        inputList[i] = {};
+                        inputList[i]['block'] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
+                        inputList[i]['name'] = block.inputList[i].name;
                     }
                 }
                 var parentBlock_ = null;
@@ -102,6 +117,7 @@ const ScreenCapture = props => {
 
                 blocksList[blockid] = {
                     childBlocks_: childBlocks_,
+                    nextBlock: nextBlock,
                     parentBlock_: parentBlock_,
                     inputList: inputList,
                     id: blockid,

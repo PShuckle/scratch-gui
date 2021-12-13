@@ -23,6 +23,7 @@ const dataChannel = createRef();
 const studentVideos = {};
 const studentBlocks = {};
 const studentWorkspaceRefs = {};
+const studentNames = {};
 const roomID = nanoid();
 
 class ClassroomGUI extends React.Component {
@@ -48,6 +49,7 @@ class ClassroomGUI extends React.Component {
 
     handleUserJoin(userData) {
         connectingStudent.current = userData.id;
+        studentNames[userData.id] = userData.name;
     };
 
     handleRecieveCall(incoming) {
@@ -229,7 +231,7 @@ class ClassroomGUI extends React.Component {
                 videos.push(
                     <ScreenCaptureThumbnail
                         key={key}
-                        name={key}
+                        name={studentNames[key]}
                         blocks={this.state.studentVideos[key].current}
                         onClick={() => this.displayStudentVideo(key)}
                     >
