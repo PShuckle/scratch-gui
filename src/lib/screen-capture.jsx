@@ -138,11 +138,9 @@ const ScreenCapture = props => {
     function streamWorkspaceSb3(saveProjectSb3) {
         // saveProjectSb3 returns a Blob; this needs to be converted to ArrayBuffer
         // for Chrome compatibility
-        console.log(window.vm);
         saveProjectSb3().then(content => {
             content.arrayBuffer().then(content => {
                 dataChannel.current.send(content);
-                window.vm.loadProject(content);
             })
         })
     }

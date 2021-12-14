@@ -9,8 +9,13 @@ import { nanoid } from 'nanoid';
 import VM from 'scratch-vm';
 import Renderer from 'scratch-render';
 import AudioEngine from 'scratch-audio';
+import {compose} from 'redux';
+import {connect} from 'react-redux';
+import {injectIntl} from 'react-intl';
 
-import storage from '../lib/storage';
+import vmListenerHOC from '../lib/vm-listener-hoc.jsx';
+import vmManagerHOC from '../lib/vm-manager-hoc.jsx';
+
 import Dropdown from '../components/dropdown/dropdown.jsx';
 import Box from '../components/box/box.jsx';
 import ScreenCaptureOutput from '../containers/screen-capture-output.jsx';
@@ -41,16 +46,14 @@ class ClassroomGUI extends React.Component {
         this.handleUserJoin = this.handleUserJoin.bind(this);
         this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this);
 
-        this.vm = new VM();
-        this.vm.attachStorage(storage);
-
         // this.canvas = document.createElement('canvas');
         // this.renderer = new Renderer(this.canvas);
         // this.vm.attachRenderer(this.renderer);
-        this.vm.attachAudioEngine(new AudioEngine());
     }
 
     componentDidMount() {
+        this.props.vm.attachAudioEngine(new AudioEngine());
+
         socketRef.current = io('http://localhost:8000');
         socketRef.current.emit('create room', roomID);
 
@@ -113,11 +116,12 @@ class ClassroomGUI extends React.Component {
     }
 
     onArrayBufferReceived(event) {
-        this.vm.loadProject(event.data).then(
+        this.props.vm.loadProject(event.data).then(
             () => {
-                this.vm.renderer.draw();
+                this.props.vm.renderer.draw();
             }
         );
+        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
     }
 
     createPeer() {
@@ -274,7 +278,7 @@ class ClassroomGUI extends React.Component {
                         name={studentNames[key]}
                         blocks={this.state.studentVideos[key].current}
                         onClick={() => this.displayStudentVideo(key)}
-                        vm={this.vm}
+                        vm={this.props.vm}
                     >
                     </ScreenCaptureThumbnail>
                 )
@@ -299,7 +303,7 @@ class ClassroomGUI extends React.Component {
                         isRendererSupported={true}
                         isFullScreen={false}
                         stageSize={STAGE_DISPLAY_SIZES.large}
-                        vm={this.vm}
+                        vm={this.props.vm}
                         isRtl={false}
                     />
 
@@ -320,9 +324,26 @@ class ClassroomGUI extends React.Component {
         );
 
     }
-
-
-
 }
 
-export default ClassroomGUI;
+const mapStateToProps = state => {
+    return {
+        vm: state.scratchGui.vm
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    
+}
+
+const ConnectedGUI = injectIntl(connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(ClassroomGUI));
+
+const WrappedGui = compose(
+    vmListenerHOC,
+    vmManagerHOC,
+)(ConnectedGUI);
+
+export default WrappedGui;

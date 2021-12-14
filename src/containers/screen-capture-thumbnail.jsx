@@ -107,7 +107,6 @@ class ScreenCaptureThumbnail extends React.Component {
             }
             this.workspace.cleanUp();
         }
-        console.log(this.workspace.topBlocks_);
     }
 
     render() {
