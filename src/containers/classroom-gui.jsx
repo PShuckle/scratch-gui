@@ -6,12 +6,19 @@ import React, {
 
 import io from "socket.io-client";
 import { nanoid } from 'nanoid';
-import {parse, stringify, toJSON, fromJSON} from 'flatted';
+import VM from 'scratch-vm';
+import Renderer from 'scratch-render';
+import AudioEngine from 'scratch-audio';
 
+import storage from '../lib/storage';
 import Dropdown from '../components/dropdown/dropdown.jsx';
 import Box from '../components/box/box.jsx';
 import ScreenCaptureOutput from '../containers/screen-capture-output.jsx';
 import ScreenCaptureThumbnail from '../containers/screen-capture-thumbnail.jsx';
+import StageWrapper from '../containers/stage-wrapper.jsx';
+import {STAGE_DISPLAY_SIZES} from '../lib/layout-constants.js';
+
+import { instanceOf } from "prop-types";
 
 const socketRef = createRef();
 const studentVideoFullScreen = createRef();
@@ -33,6 +40,14 @@ class ClassroomGUI extends React.Component {
         this.handleRecieveCall = this.handleRecieveCall.bind(this);
         this.handleUserJoin = this.handleUserJoin.bind(this);
         this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this);
+
+        this.vm = new VM();
+        this.vm.attachStorage(storage);
+
+        // this.canvas = document.createElement('canvas');
+        // this.renderer = new Renderer(this.canvas);
+        // this.vm.attachRenderer(this.renderer);
+        this.vm.attachAudioEngine(new AudioEngine());
     }
 
     componentDidMount() {
@@ -53,16 +68,11 @@ class ClassroomGUI extends React.Component {
     };
 
     handleRecieveCall(incoming) {
-        peerRef.current = createPeer();
+        peerRef.current = this.createPeer();
         peerRef.current.addEventListener('datachannel', event => {
             dataChannel.current = event.channel;
             dataChannel.current.addEventListener('message', (event) => {
-                const eventObject = JSON.parse(event.data);
-                if (!studentWorkspaceRefs[eventObject.sender]) {
-                    studentWorkspaceRefs[eventObject.sender] = createRef();
-                }
-                studentWorkspaceRefs[eventObject.sender].current = eventObject.blocksList;
-                this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
+                this.onMessageReceived(event);
             })
         });
         const desc = new RTCSessionDescription(incoming.sdp);
@@ -77,42 +87,68 @@ class ClassroomGUI extends React.Component {
                 sdp: peerRef.current.localDescription
             }
             socketRef.current.emit('answer', payload);
-        })
-
-        function createPeer() {
-            const peer = new RTCPeerConnection({
-                iceServers: [
-                    {
-                        urls: "stun:stun.stunprotocol.org"
-                    },
-                    {
-                        urls: 'turn:numb.viagenie.ca',
-                        credential: 'muazkh',
-                        username: 'webrtc@live.com'
-                    },
-                ]
-            });
-
-            peer.onicecandidate = handleICECandidateEvent;
-            peer.ontrack = handleTrackEvent;
-
-            return peer;
-        };
-
-        function handleICECandidateEvent(e) {
-            if (e.candidate) {
-                const payload = {
-                    target: connectingStudent.current,
-                    candidate: e.candidate,
-                }
-                socketRef.current.emit("ice-candidate", payload);
-            }
-        }
-
-        function handleTrackEvent(e) {
-            studentVideos[connectingStudent.current] = e.streams[0];
-        };
+        });
     };
+
+    onMessageReceived(event) {
+        if (typeof event.data === 'string') {
+            this.onStringMessageReceived(event);
+        }
+        else if (event.data instanceof ArrayBuffer) {
+            this.onArrayBufferReceived(event);
+        }
+        else {
+            console.log(event.data);
+            console.log(typeof event.data);
+        }
+    }
+
+    onStringMessageReceived(event) {
+        const eventObject = JSON.parse(event.data);
+        if (!studentWorkspaceRefs[eventObject.sender]) {
+            studentWorkspaceRefs[eventObject.sender] = createRef();
+        }
+        studentWorkspaceRefs[eventObject.sender].current = eventObject.blocksList;
+        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
+    }
+
+    onArrayBufferReceived(event) {
+        this.vm.loadProject(event.data).then(
+            () => {
+                this.vm.renderer.draw();
+            }
+        );
+    }
+
+    createPeer() {
+        const peer = new RTCPeerConnection({
+            iceServers: [
+                {
+                    urls: "stun:stun.stunprotocol.org"
+                },
+                {
+                    urls: 'turn:numb.viagenie.ca',
+                    credential: 'muazkh',
+                    username: 'webrtc@live.com'
+                },
+            ]
+        });
+
+        peer.onicecandidate = this.handleICECandidateEvent;
+        peer.ontrack = this.handleTrackEvent;
+
+        return peer;
+    };
+
+    handleICECandidateEvent(e) {
+        if (e.candidate) {
+            const payload = {
+                target: connectingStudent.current,
+                candidate: e.candidate,
+            }
+            socketRef.current.emit("ice-candidate", payload);
+        }
+    }
 
     handleNewICECandidateMsg(incoming) {
         const candidate = new RTCIceCandidate(incoming);
@@ -121,12 +157,16 @@ class ClassroomGUI extends React.Component {
             .catch(e => console.log(e));
     };
 
+    handleTrackEvent(e) {
+        studentVideos[connectingStudent.current] = e.streams[0];
+    };
+
     displayThumbnailView = () => {
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null });
     }
 
     displayStudentVideo = (studentId) => {
-        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () =>{
+        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () => {
             activeStudent.current = studentId;
             studentVideoFullScreen.current.srcObject = studentVideos[studentId];
         });
@@ -234,6 +274,7 @@ class ClassroomGUI extends React.Component {
                         name={studentNames[key]}
                         blocks={this.state.studentVideos[key].current}
                         onClick={() => this.displayStudentVideo(key)}
+                        vm={this.vm}
                     >
                     </ScreenCaptureThumbnail>
                 )
@@ -242,17 +283,27 @@ class ClassroomGUI extends React.Component {
         }
         else {
             videoDisplay =
-                <ScreenCaptureOutput
-                    video={studentVideoFullScreen}
-                    onClick={(e) => this.handleClick(e)}
-                    onMouseDown={(e) => this.handleMouseDown(e)}
-                    onMouseUp={(e) => this.handleMouseUp(e)}
-                    onDrag={(e) => this.handleDrag(e)}
-                    onDragStart={(e) => this.handleDragStart(e)}
-                    onDragEnd={(e) => this.handleDragEnd(e)}
-                    onKeyDown={(e) => this.handleKeyPress(e)}
-                    onWheel={(e) => this.handleWheel(e)}>
-                </ScreenCaptureOutput>
+                <div>
+                    <ScreenCaptureOutput
+                        video={studentVideoFullScreen}
+                        onClick={(e) => this.handleClick(e)}
+                        onMouseDown={(e) => this.handleMouseDown(e)}
+                        onMouseUp={(e) => this.handleMouseUp(e)}
+                        onDrag={(e) => this.handleDrag(e)}
+                        onDragStart={(e) => this.handleDragStart(e)}
+                        onDragEnd={(e) => this.handleDragEnd(e)}
+                        onKeyDown={(e) => this.handleKeyPress(e)}
+                        onWheel={(e) => this.handleWheel(e)}>
+                    </ScreenCaptureOutput>
+                    <StageWrapper
+                        isRendererSupported={true}
+                        isFullScreen={false}
+                        stageSize={STAGE_DISPLAY_SIZES.large}
+                        vm={this.vm}
+                        isRtl={false}
+                    />
+
+                </div>
         }
 
         return (

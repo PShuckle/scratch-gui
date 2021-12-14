@@ -39,7 +39,8 @@ class SB3Downloader extends React.Component {
         } = this.props;
         return children(
             this.props.className,
-            this.downloadProject
+            this.downloadProject,
+            this.props.saveProjectSb3
         );
     }
 }

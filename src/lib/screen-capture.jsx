@@ -3,9 +3,10 @@ import React, {
     useEffect
 } from "react";
 import io from "socket.io-client";
-import { parse, stringify, toJSON, fromJSON } from 'flatted';
 import adapter from 'webrtc-adapter';
 import { copyWithin } from "react-style-proptype/src/css-properties";
+
+import SB3Downloader from '../containers/sb3-downloader.jsx';
 
 const ScreenCapture = props => {
     const peerRef = useRef();
@@ -67,6 +68,8 @@ const ScreenCapture = props => {
                 streamWorkspaceBlocks()
             }, 100);
         })
+        // rendererDataChannel.current = peerRef.current.createDataChannel('Binary');
+        // rendererDataChannel.current.binaryType = 'blob';
 
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
@@ -99,7 +102,7 @@ const ScreenCapture = props => {
                 catch {
 
                 }
-                
+
                 let inputList = {};
                 for (var i in block.inputList) {
                     if (block.inputList[i].connection != null && block.inputList[i].connection.targetConnection) {
@@ -130,6 +133,18 @@ const ScreenCapture = props => {
 
         const json = JSON.stringify(eventData);
         dataChannel.current.send(json);
+    }
+
+    function streamWorkspaceSb3(saveProjectSb3) {
+        // saveProjectSb3 returns a Blob; this needs to be converted to ArrayBuffer
+        // for Chrome compatibility
+        console.log(window.vm);
+        saveProjectSb3().then(content => {
+            content.arrayBuffer().then(content => {
+                dataChannel.current.send(content);
+                window.vm.loadProject(content);
+            })
+        })
     }
 
     /**
@@ -260,7 +275,12 @@ const ScreenCapture = props => {
     }
 
     return (
-        <button onClick={startStream}>Share Screen</button>
+        <SB3Downloader>{(className, downloadProject, saveProjectSb3) => (
+            <div>
+                <button onClick={startStream}>Share Screen</button>
+                <button onClick={() => streamWorkspaceSb3(saveProjectSb3)}>Share Renderer</button>
+            </div>
+        )}</SB3Downloader>
     );
 
 }

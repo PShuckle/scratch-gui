@@ -15,9 +15,8 @@ class ScreenCaptureThumbnail extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log(props);
-        const vm = new VM();
-        this.ScratchBlocks = VMScratchBlocks(vm);
+        this.vm = props.vm;
+        this.ScratchBlocks = VMScratchBlocks(this.vm);
 
         this.onClick = props.onClick;
         this.name = props.name;
@@ -41,10 +40,7 @@ class ScreenCaptureThumbnail extends React.Component {
         for (let i = 0; i < 5; i++) {
             this.workspace.zoomCenter(-1);
         };
-
-
-
-
+        
         this.displayBlocks();
     }
 
@@ -109,8 +105,6 @@ class ScreenCaptureThumbnail extends React.Component {
 
 
             }
-
-
             this.workspace.cleanUp();
         }
         console.log(this.workspace.topBlocks_);
