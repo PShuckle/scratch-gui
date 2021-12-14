@@ -65,7 +65,8 @@ const ScreenCapture = props => {
         dataChannel.current = peerRef.current.createDataChannel({});
         dataChannel.current.addEventListener('open', event => {
             setInterval(function () {
-                streamWorkspaceBlocks()
+                streamWorkspaceBlocks();
+                streamWorkspaceSb3();
             }, 100);
         })
         // rendererDataChannel.current = peerRef.current.createDataChannel('Binary');
@@ -79,7 +80,6 @@ const ScreenCapture = props => {
         const blocksList = {};
         for (var blockid in workspaceBlocks) {
             const block = workspaceBlocks[blockid];
-            // console.log(block);
             if (block.colour_ != '#000000') {
                 const childBlocks_ = [];
                 for (var i in block.childBlocks_) {
@@ -135,10 +135,10 @@ const ScreenCapture = props => {
         dataChannel.current.send(json);
     }
 
-    function streamWorkspaceSb3(saveProjectSb3) {
+    function streamWorkspaceSb3() {
         // saveProjectSb3 returns a Blob; this needs to be converted to ArrayBuffer
         // for Chrome compatibility
-        saveProjectSb3().then(content => {
+        props.saveProjectSb3().then(content => {
             content.arrayBuffer().then(content => {
                 dataChannel.current.send(content);
             })
@@ -276,7 +276,6 @@ const ScreenCapture = props => {
         <SB3Downloader>{(className, downloadProject, saveProjectSb3) => (
             <div>
                 <button onClick={startStream}>Share Screen</button>
-                <button onClick={() => streamWorkspaceSb3(saveProjectSb3)}>Share Renderer</button>
             </div>
         )}</SB3Downloader>
     );

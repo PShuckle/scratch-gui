@@ -23,8 +23,6 @@ import ScreenCaptureThumbnail from '../containers/screen-capture-thumbnail.jsx';
 import StageWrapper from '../containers/stage-wrapper.jsx';
 import {STAGE_DISPLAY_SIZES} from '../lib/layout-constants.js';
 
-import { instanceOf } from "prop-types";
-
 const socketRef = createRef();
 const studentVideoFullScreen = createRef();
 const activeStudent = createRef();
@@ -33,7 +31,6 @@ const peerRef = createRef();
 const dataChannel = createRef();
 
 const studentVideos = {};
-const studentBlocks = {};
 const studentWorkspaceRefs = {};
 const studentNames = {};
 const roomID = nanoid();
@@ -42,13 +39,13 @@ class ClassroomGUI extends React.Component {
     constructor() {
         super();
         this.state = { studentVideos: {}, activeVideo: null }
+
+        this.activeProject = null;
+
         this.handleRecieveCall = this.handleRecieveCall.bind(this);
         this.handleUserJoin = this.handleUserJoin.bind(this);
         this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this);
-
-        // this.canvas = document.createElement('canvas');
-        // this.renderer = new Renderer(this.canvas);
-        // this.vm.attachRenderer(this.renderer);
+        this.loadProject = this.loadProject.bind(this);
     }
 
     componentDidMount() {
@@ -116,7 +113,11 @@ class ClassroomGUI extends React.Component {
     }
 
     onArrayBufferReceived(event) {
-        this.props.vm.loadProject(event.data).then(
+        this.activeProject = event.data;
+    }
+
+    loadProject() {
+        this.props.vm.loadProject(this.activeProject).then(
             () => {
                 this.props.vm.renderer.draw();
             }
@@ -173,6 +174,7 @@ class ClassroomGUI extends React.Component {
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () => {
             activeStudent.current = studentId;
             studentVideoFullScreen.current.srcObject = studentVideos[studentId];
+            this.loadProject();
         });
     }
 
@@ -299,6 +301,7 @@ class ClassroomGUI extends React.Component {
                         onKeyDown={(e) => this.handleKeyPress(e)}
                         onWheel={(e) => this.handleWheel(e)}>
                     </ScreenCaptureOutput>
+                    <button onClick={this.loadProject}>Refresh Renderer</button>
                     <StageWrapper
                         isRendererSupported={true}
                         isFullScreen={false}
@@ -328,6 +331,7 @@ class ClassroomGUI extends React.Component {
 
 const mapStateToProps = state => {
     return {
+        isPlayerOnly: state.scratchGui.mode.isPlayerOnly,
         vm: state.scratchGui.vm
     }
 }

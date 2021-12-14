@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import omit from 'lodash.omit';
 import PropTypes from 'prop-types';
-import React, {useRef} from 'react';
+import React, { useRef } from 'react';
 import { defineMessages, FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import { connect } from 'react-redux';
 import MediaQuery from 'react-responsive';
@@ -21,6 +21,7 @@ import MenuBar from '../menu-bar/menu-bar.jsx';
 import CostumeLibrary from '../../containers/costume-library.jsx';
 import BackdropLibrary from '../../containers/backdrop-library.jsx';
 import Watermark from '../../containers/watermark.jsx';
+import SB3Downloader from '../../containers/sb3-downloader.jsx';
 
 import Backpack from '../../containers/backpack.jsx';
 import WebGlModal from '../../containers/webgl-modal.jsx';
@@ -335,7 +336,13 @@ const GUIComponent = props => {
                                         <Watermark />
                                     </Box>
                                     <Box className={styles.shareScreenButton}>
-                                        <ScreenCaptureButton workspace={workspaceRef}/>
+                                        <SB3Downloader>{(className, downloadProject, saveProjectSb3) => (
+                                            <ScreenCaptureButton
+                                                workspace={workspaceRef}
+                                                saveProjectSb3={saveProjectSb3}
+                                            />
+                                        )}</SB3Downloader>
+
                                     </Box>
                                 </TabPanel>
                                 <TabPanel className={tabClassNames.tabPanel}>
