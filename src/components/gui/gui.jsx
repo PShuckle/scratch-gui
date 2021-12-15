@@ -34,7 +34,7 @@ import TelemetryModal from '../telemetry-modal/telemetry-modal.jsx';
 
 import layout, { STAGE_SIZE_MODES } from '../../lib/layout-constants';
 import { resolveStageSize } from '../../lib/screen-utils';
-import ScreenCaptureButton from "../../lib/screen-capture.jsx";
+import ScreenCaptureButton from "../../containers/screen-capture.jsx";
 
 import styles from './gui.css';
 import addExtensionIcon from './icon--extensions.svg';
