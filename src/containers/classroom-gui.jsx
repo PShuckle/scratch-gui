@@ -41,6 +41,7 @@ class ClassroomGUI extends React.Component {
         this.state = { studentVideos: {}, activeVideo: null }
 
         this.activeProject = null;
+        this.loaded = false;
 
         this.handleRecieveCall = this.handleRecieveCall.bind(this);
         this.handleUserJoin = this.handleUserJoin.bind(this);
@@ -114,15 +115,14 @@ class ClassroomGUI extends React.Component {
 
     onArrayBufferReceived(event) {
         this.activeProject = event.data;
+        if (!this.loaded) {
+            this.loadProject();
+        }
     }
 
     loadProject() {
-        this.props.vm.loadProject(this.activeProject).then(
-            () => {
-                this.props.vm.renderer.draw();
-            }
-        );
-        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
+        this.loaded = true;
+        this.props.vm.loadProject(this.activeProject);
     }
 
     createPeer() {
@@ -167,14 +167,19 @@ class ClassroomGUI extends React.Component {
     };
 
     displayThumbnailView = () => {
+        this.loaded = false;
+        if (activeStudent.current) {
+            socketRef.current.emit('stop sb3 stream', activeStudent.current);
+        }
+        activeStudent.current = null;
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null });
     }
 
     displayStudentVideo = (studentId) => {
+        activeStudent.current = studentId;
+        socketRef.current.emit('send project sb3', activeStudent.current);
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () => {
-            activeStudent.current = studentId;
             studentVideoFullScreen.current.srcObject = studentVideos[studentId];
-            this.loadProject();
         });
     }
 

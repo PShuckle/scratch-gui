@@ -6,7 +6,7 @@ import io from "socket.io-client";
 import adapter from 'webrtc-adapter';
 import { copyWithin } from "react-style-proptype/src/css-properties";
 
-import SB3Downloader from '../containers/sb3-downloader.jsx';
+import SB3Downloader from './sb3-downloader.jsx';
 
 const ScreenCapture = props => {
     const peerRef = useRef();
@@ -14,6 +14,7 @@ const ScreenCapture = props => {
     const teacher = useRef();
     const userStream = useRef();
     const dataChannel = useRef();
+    const sb3Stream = useRef();
 
     useEffect(() => {
         userStream.current = null;
@@ -64,13 +65,12 @@ const ScreenCapture = props => {
         peerRef.current = createPeer(teacherID);
         dataChannel.current = peerRef.current.createDataChannel({});
         dataChannel.current.addEventListener('open', event => {
+            socketRef.current.on('send project sb3', streamWorkspaceSb3);
+            socketRef.current.on('stop sb3 stream', stopStreamWorkspaceSb3);
             setInterval(function () {
                 streamWorkspaceBlocks();
-                streamWorkspaceSb3();
             }, 100);
         })
-        // rendererDataChannel.current = peerRef.current.createDataChannel('Binary');
-        // rendererDataChannel.current.binaryType = 'blob';
 
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
@@ -136,13 +136,19 @@ const ScreenCapture = props => {
     }
 
     function streamWorkspaceSb3() {
-        // saveProjectSb3 returns a Blob; this needs to be converted to ArrayBuffer
-        // for Chrome compatibility
-        props.saveProjectSb3().then(content => {
-            content.arrayBuffer().then(content => {
-                dataChannel.current.send(content);
-            })
-        })
+        sb3Stream.current = setInterval(function() {
+            // saveProjectSb3 returns a Blob; this needs to be converted to ArrayBuffer
+            // for Chrome compatibility
+            props.saveProjectSb3().then(content => {
+                content.arrayBuffer().then(content => {
+                    dataChannel.current.send(content);
+                })
+            }, 100);
+        });
+    }
+
+    function stopStreamWorkspaceSb3() {
+        clearInterval(sb3Stream.current);
     }
 
     /**
