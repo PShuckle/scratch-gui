@@ -123,7 +123,7 @@ const ScreenCapture = props => {
                     if (block.inputList[i].connection != null && block.inputList[i].connection.targetConnection) {
                         inputList[i] = {};
                         inputList[i]['block'] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
-                        
+
                         // store the type of input - whether it is field, substack, etc
                         inputList[i]['name'] = block.inputList[i].name;
                     }
@@ -163,10 +163,32 @@ const ScreenCapture = props => {
             // for Chrome compatibility
             props.saveProjectSb3().then(content => {
                 content.arrayBuffer().then(content => {
-                    dataChannel.current.send(content);
+                    sendProjectSb3Chunks(content);
                 })
-            }, 100);
-        });
+            });
+        }, 1000);
+    }
+
+    /**
+     * Split the ArrayBuffer representation of the project into chunks; this is needed to bypass
+     * the WebRTC message size limit 
+     * @param {} content 
+     */
+    function sendProjectSb3Chunks(content) {
+        var length = content.byteLength;
+
+        // send the total number of bytes to expect for the project
+        dataChannel.current.send(length.toString());
+
+        // most browsers have a limit of 65535 bytes
+        const chunkSize = 64000;
+
+        // send the next 64000 bytes of data
+        for (var i = 0; i < length; i+= chunkSize) {
+            var start = i;
+            var end = i + chunkSize;
+            dataChannel.current.send(content.slice(start, end));
+          }
     }
 
     // stop streaming ArrayBuffer when student's video is no longer active

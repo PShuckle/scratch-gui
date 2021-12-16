@@ -5,9 +5,9 @@ import React, {
 import io from "socket.io-client";
 import { nanoid } from 'nanoid';
 import AudioEngine from 'scratch-audio';
-import {compose} from 'redux';
-import {connect} from 'react-redux';
-import {injectIntl} from 'react-intl';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
+import { injectIntl } from 'react-intl';
 
 import vmListenerHOC from '../lib/vm-listener-hoc.jsx';
 import vmManagerHOC from '../lib/vm-manager-hoc.jsx';
@@ -17,7 +17,7 @@ import Box from '../components/box/box.jsx';
 import ScreenCaptureOutput from '../containers/screen-capture-output.jsx';
 import ScreenCaptureThumbnail from '../containers/screen-capture-thumbnail.jsx';
 import StageWrapper from '../containers/stage-wrapper.jsx';
-import {STAGE_DISPLAY_SIZES} from '../lib/layout-constants.js';
+import { STAGE_DISPLAY_SIZES } from '../lib/layout-constants.js';
 
 const socketRef = createRef();
 const studentVideoFullScreen = createRef();
@@ -29,6 +29,7 @@ const dataChannel = createRef();
 const studentVideos = {};
 const studentWorkspaceRefs = {};
 const studentNames = {};
+var studentProjectData = {};
 
 //Generate a random room ID
 const roomID = nanoid();
@@ -102,9 +103,15 @@ class ClassroomGUI extends React.Component {
      * @param {} event Object representing the message event
      */
     onMessageReceived(event) {
-        // handle incoming blocks JSON string message
         if (typeof event.data === 'string') {
-            this.onStringMessageReceived(event);
+            // handle incoming alert for number of bytes in project
+            if (parseInt(event.data)) {
+                this.onChunkNumberReceived(event);
+            }
+            // handle incoming blocks JSON string message
+            else {
+                this.onBlockJsonMessageReceived(event);
+            }
         }
         // handle incoming project to be loaded in the renderer
         else if (event.data instanceof ArrayBuffer) {
@@ -120,7 +127,7 @@ class ClassroomGUI extends React.Component {
      * On receiving a block JSON string as a message, add the blocks to the workspace thumbnail
      * @param {*} event 
      */
-    onStringMessageReceived(event) {
+    onBlockJsonMessageReceived(event) {
         const eventObject = JSON.parse(event.data);
 
         // create new workspace for student if necessary
@@ -134,18 +141,42 @@ class ClassroomGUI extends React.Component {
     }
 
     /**
-     * On receiving an ArrayBuffer, store the project to be loaded at a later time
+     * On receiving the number of bytes in the project, prepare to receive the project data in chunks
      * @param {*} event 
      */
-    onArrayBufferReceived(event) {
-        this.activeProject = event.data;
-        if (!this.loaded) {
-            this.loadProject();
-        }
+    onChunkNumberReceived(event) {
+        studentProjectData = { total: parseInt(event.data), bytesReceived: 0, dataReceived: new Uint8Array() };
     }
 
     /**
-     * load the most recently stored project into the renderer
+     * Combine all chunks of the project into a single ArrayBuffer and store it to be loaded later
+     * @param {*} event 
+     */
+    onArrayBufferReceived(event) {
+
+        // combine the chunk that was just received with all the previous chunks
+        var chunkArray = new Uint8Array(event.data);
+        var prevData = studentProjectData.dataReceived;
+
+        studentProjectData.dataReceived = new Uint8Array([
+            ...prevData,
+            ...chunkArray
+        ]);
+
+        studentProjectData.bytesReceived += event.data.byteLength;
+
+        // convert data back to ArrayBuffer if all data has been received
+        if (studentProjectData.bytesReceived == studentProjectData.total) {
+            this.activeProject = studentProjectData.dataReceived.buffer;
+            if (!this.loaded) {
+                this.loadProject();
+            }
+        }
+
+    }
+
+    /**
+     * load the most recently stored project into the renderer.
      */
     loadProject() {
         this.loaded = true;
