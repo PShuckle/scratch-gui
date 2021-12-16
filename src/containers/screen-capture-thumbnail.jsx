@@ -36,10 +36,10 @@ class ScreenCaptureThumbnail extends React.Component {
         this.workspace.toolbox_.dispose();
         this.workspace.toolbox_ = null;
 
+        var metrics = this.workspace.getMetrics();
+
         // zoom workspace out
-        for (let i = 0; i < 5; i++) {
-            this.workspace.zoomCenter(-1);
-        };
+        this.workspace.zoom(metrics.contentLeft, metrics.contentTop,-5);
         
         this.displayBlocks();
     }
