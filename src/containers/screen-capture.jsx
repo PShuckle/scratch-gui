@@ -75,12 +75,21 @@ const ScreenCapture = props => {
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
 
+
+    /**
+     * Start streaming a JSON representation of all the blocks in the workspace
+     */
     function streamWorkspaceBlocks() {
         const workspaceBlocks = props.workspace.current.blockDB_;
         const blocksList = {};
         for (var blockid in workspaceBlocks) {
             const block = workspaceBlocks[blockid];
+
+            // do not share the black 'ghost' blocks that appear temporarily when dragging blocks
+            // over the workspace near other blocks
             if (block.colour_ != '#000000') {
+
+                // create a list of the block's children
                 const childBlocks_ = [];
                 for (var i in block.childBlocks_) {
                     var child = block.childBlocks_[i];
@@ -89,6 +98,8 @@ const ScreenCapture = props => {
                     }
                 }
 
+                // get the next block in the stack - this is the block directly underneath the current 
+                // block
                 var nextBlock = null;
                 try {
                     nextBlock = block.nextConnection.targetConnection.sourceBlock_;
@@ -103,14 +114,20 @@ const ScreenCapture = props => {
 
                 }
 
+                // create list of the block's inputs - this includes input fields, dropdowns, 
+                // and substacks in control blocks
                 let inputList = {};
                 for (var i in block.inputList) {
                     if (block.inputList[i].connection != null && block.inputList[i].connection.targetConnection) {
                         inputList[i] = {};
                         inputList[i]['block'] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
+                        
+                        // store the type of input - whether it is field, substack, etc
                         inputList[i]['name'] = block.inputList[i].name;
                     }
                 }
+
+                // get the block's parent block - this is the previous block in the stack
                 var parentBlock_ = null;
                 if (block.parentBlock_) {
                     if (block.parentBlock_.colour_ != '#000000') {
@@ -118,6 +135,8 @@ const ScreenCapture = props => {
                     }
                 }
 
+                // add the block with all previously gathered info into the list of blocks to 
+                // be sent to tutor
                 blocksList[blockid] = {
                     childBlocks_: childBlocks_,
                     nextBlock: nextBlock,
@@ -135,6 +154,7 @@ const ScreenCapture = props => {
         dataChannel.current.send(json);
     }
 
+    // stream the ArrayBuffer representation of the project to be loaded into the tutor's renderer
     function streamWorkspaceSb3() {
         sb3Stream.current = setInterval(function() {
             // saveProjectSb3 returns a Blob; this needs to be converted to ArrayBuffer
@@ -147,6 +167,7 @@ const ScreenCapture = props => {
         });
     }
 
+    // stop streaming ArrayBuffer when student's video is no longer active
     function stopStreamWorkspaceSb3() {
         clearInterval(sb3Stream.current);
     }
@@ -218,16 +239,26 @@ const ScreenCapture = props => {
             .catch(e => console.log(e));
     }
 
+    /**
+     * Allow tutor to control the screen by dispatching mouse events being sent from the tutor 
+     * interacting with the video
+     * @param {*} event 
+     */
     function handleMouseEvent(event) {
+        // find the element which the Event should fire on: this should be the same element 
+        // that the tutor clicked on
         const x = event.x * window.innerWidth;
         const y = event.y * window.innerHeight;
 
         var element = document.elementFromPoint(x, y);
 
+        // handle an issue with dragging blocks, where the last mousemove event before mouseup
+        // always has negative x and y coordinates
         if (!element) {
             return;
         }
 
+        // fire the event
         element.dispatchEvent(new MouseEvent(event.type,
             {
                 clientX: x,
@@ -242,6 +273,7 @@ const ScreenCapture = props => {
     function handleKeyEvent(event) {
         window.dispatchEvent(new KeyboardEvent('keydown', { key: event.key, code: event.code }));
 
+        // allow tutor to type into input fields: this cannot be done by dispatching KeyEvents
         if (document.activeElement.classList.contains('blocklyHtmlInput')) {
             if (event.key === 'Backspace') {
                 var string = document.activeElement.value;

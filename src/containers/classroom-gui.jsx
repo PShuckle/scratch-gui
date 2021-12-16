@@ -1,13 +1,9 @@
 import React, {
     createRef,
-    useRef,
-    useEffect
 } from "react";
 
 import io from "socket.io-client";
 import { nanoid } from 'nanoid';
-import VM from 'scratch-vm';
-import Renderer from 'scratch-render';
 import AudioEngine from 'scratch-audio';
 import {compose} from 'redux';
 import {connect} from 'react-redux';
@@ -33,6 +29,8 @@ const dataChannel = createRef();
 const studentVideos = {};
 const studentWorkspaceRefs = {};
 const studentNames = {};
+
+//Generate a random room ID
 const roomID = nanoid();
 
 class ClassroomGUI extends React.Component {
@@ -63,11 +61,19 @@ class ClassroomGUI extends React.Component {
 
     };
 
+    /**
+     * Respond to a student joining a room.
+     * @param {*} userData Contains the ID and name of the student joining the room.
+     */
     handleUserJoin(userData) {
         connectingStudent.current = userData.id;
         studentNames[userData.id] = userData.name;
     };
 
+    /**
+     * Respond to incoming call request
+     * @param {*} incoming 
+     */
     handleRecieveCall(incoming) {
         peerRef.current = this.createPeer();
         peerRef.current.addEventListener('datachannel', event => {
@@ -91,10 +97,16 @@ class ClassroomGUI extends React.Component {
         });
     };
 
+    /**
+     * Respond to incoming message on the datachannel
+     * @param {} event Object representing the message event
+     */
     onMessageReceived(event) {
+        // handle incoming blocks JSON string message
         if (typeof event.data === 'string') {
             this.onStringMessageReceived(event);
         }
+        // handle incoming project to be loaded in the renderer
         else if (event.data instanceof ArrayBuffer) {
             this.onArrayBufferReceived(event);
         }
@@ -104,15 +116,27 @@ class ClassroomGUI extends React.Component {
         }
     }
 
+    /**
+     * On receiving a block JSON string as a message, add the blocks to the workspace thumbnail
+     * @param {*} event 
+     */
     onStringMessageReceived(event) {
         const eventObject = JSON.parse(event.data);
+
+        // create new workspace for student if necessary
         if (!studentWorkspaceRefs[eventObject.sender]) {
             studentWorkspaceRefs[eventObject.sender] = createRef();
         }
+
+        // update workspace thumbnail with the new blocks list and re-render
         studentWorkspaceRefs[eventObject.sender].current = eventObject.blocksList;
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
     }
 
+    /**
+     * On receiving an ArrayBuffer, store the project to be loaded at a later time
+     * @param {*} event 
+     */
     onArrayBufferReceived(event) {
         this.activeProject = event.data;
         if (!this.loaded) {
@@ -120,11 +144,18 @@ class ClassroomGUI extends React.Component {
         }
     }
 
+    /**
+     * load the most recently stored project into the renderer
+     */
     loadProject() {
         this.loaded = true;
         this.props.vm.loadProject(this.activeProject);
     }
 
+    /**
+     * create a peer connection with the student
+     * @returns RTCPeerConnection
+     */
     createPeer() {
         const peer = new RTCPeerConnection({
             iceServers: [
@@ -166,23 +197,42 @@ class ClassroomGUI extends React.Component {
         studentVideos[connectingStudent.current] = e.streams[0];
     };
 
+    /**
+     * display the student thumbnails when Show Thumbnails button is clicked
+     */
     displayThumbnailView = () => {
         this.loaded = false;
+
+        // send event to student client to stop sharing their project as ArrayBuffer
         if (activeStudent.current) {
             socketRef.current.emit('stop sb3 stream', activeStudent.current);
         }
+
+        // re-render component
         activeStudent.current = null;
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null });
     }
 
+    /**
+     * Display the student's video of their screen and the independent 
+     * renderer with their project loaded
+     */
     displayStudentVideo = (studentId) => {
         activeStudent.current = studentId;
+
+        // emit event instructing student to start sharing their project ArrayBuffer
         socketRef.current.emit('send project sb3', activeStudent.current);
+
+        // re-render component
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () => {
             studentVideoFullScreen.current.srcObject = studentVideos[studentId];
         });
     }
 
+    /**
+     * Transfer any mouse clicks on student's video screenshare to the student client
+     * @param {*} event Details of the mouse event including x and y location of the click
+     */
     handleClick = (event) => {
         const video = document.getElementById('video');
         video.focus();
@@ -239,6 +289,13 @@ class ClassroomGUI extends React.Component {
         this.handleMouseUp(event);
     }
 
+    /**
+     * Calculate the x and y location of a mouse event as a fraction of the size of the video
+     * For example, a click in the middle of the video returns { x: 0.5, y: 0.5 }
+     * @param {*} event Details of the mouse event including the x and y 
+     * location of where the event occurred
+     * @returns Object storing the fraction x and y values
+     */
     getClickProportion = (event) => {
         const video = document.getElementById('video');
 
@@ -276,6 +333,8 @@ class ClassroomGUI extends React.Component {
 
     render() {
         var videoDisplay;
+
+        // Either render all student thumbnails, or render the selected student's video and renderer
         if (this.state.activeVideo == null) {
             var videos = [];
             for (let key in this.state.studentVideos) {
@@ -341,13 +400,8 @@ const mapStateToProps = state => {
     }
 }
 
-const mapDispatchToProps = dispatch => {
-    
-}
-
 const ConnectedGUI = injectIntl(connect(
-    mapStateToProps,
-    mapDispatchToProps,
+    mapStateToProps
 )(ClassroomGUI));
 
 const WrappedGui = compose(
