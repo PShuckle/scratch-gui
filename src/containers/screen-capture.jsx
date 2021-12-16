@@ -118,6 +118,8 @@ const ScreenCapture = props => {
                 // and substacks in control blocks
                 let inputList = {};
                 for (var i in block.inputList) {
+                    // ignore icon inputs (such as the arrow on the repeat block) as these are 
+                    // automatically generated when the tutor creates a block in the workspace
                     if (block.inputList[i].connection != null && block.inputList[i].connection.targetConnection) {
                         inputList[i] = {};
                         inputList[i]['block'] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
