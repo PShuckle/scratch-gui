@@ -78,10 +78,10 @@ const ScreenCapture = props => {
 
     function onMessageReceived(event) {
         if (event.data === 'send project sb3') {
-            streamWorkspaceSb3();
+            streamProjectSb3();
         }
         else if (event.data === 'stop sb3 stream') {
-            stopStreamWorkspaceSb3();
+            stopStreamProjectSb3();
         }
     }
 
@@ -166,7 +166,7 @@ const ScreenCapture = props => {
     }
 
     // stream the ArrayBuffer representation of the project to be loaded into the tutor's renderer
-    function streamWorkspaceSb3() {
+    function streamProjectSb3() {
         sb3Stream.current = setInterval(function() {
             // saveProjectSb3 returns a Blob; this needs to be converted to ArrayBuffer
             // for Chrome compatibility
@@ -201,7 +201,7 @@ const ScreenCapture = props => {
     }
 
     // stop streaming ArrayBuffer when student's video is no longer active
-    function stopStreamWorkspaceSb3() {
+    function stopStreamProjectSb3() {
         clearInterval(sb3Stream.current);
     }
 
