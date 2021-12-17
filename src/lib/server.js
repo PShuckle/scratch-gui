@@ -76,14 +76,6 @@ io.on("connection", socket => {
     socket.on('wheel', wheelEvent => {
         io.to(wheelEvent.studentID).emit('wheel', wheelEvent);
     })
-
-    socket.on('send project sb3', studentID => {
-        io.to(studentID).emit('send project sb3');
-    })
-
-    socket.on('stop sb3 stream', studentID => {
-        io.to(studentID).emit('stop sb3 stream');
-    })
 });
 
 server.listen(8000, () => console.log('server is running on port 8000'));

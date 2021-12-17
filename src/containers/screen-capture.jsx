@@ -65,8 +65,9 @@ const ScreenCapture = props => {
         peerRef.current = createPeer(teacherID);
         dataChannel.current = peerRef.current.createDataChannel({});
         dataChannel.current.addEventListener('open', event => {
-            socketRef.current.on('send project sb3', streamWorkspaceSb3);
-            socketRef.current.on('stop sb3 stream', stopStreamWorkspaceSb3);
+            dataChannel.current.addEventListener('message', (event) => {
+                onMessageReceived(event);
+            })
             setInterval(function () {
                 streamWorkspaceBlocks();
             }, 100);
@@ -75,6 +76,14 @@ const ScreenCapture = props => {
         userStream.current.getTracks().forEach(track => peerRef.current.addTrack(track, userStream.current));
     }
 
+    function onMessageReceived(event) {
+        if (event.data === 'send project sb3') {
+            streamWorkspaceSb3();
+        }
+        else if (event.data === 'stop sb3 stream') {
+            stopStreamWorkspaceSb3();
+        }
+    }
 
     /**
      * Start streaming a JSON representation of all the blocks in the workspace

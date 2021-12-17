@@ -236,7 +236,7 @@ class ClassroomGUI extends React.Component {
 
         // send event to student client to stop sharing their project as ArrayBuffer
         if (activeStudent.current) {
-            socketRef.current.emit('stop sb3 stream', activeStudent.current);
+            dataChannel.current.send('stop sb3 stream');
         }
 
         // re-render component
@@ -252,7 +252,7 @@ class ClassroomGUI extends React.Component {
         activeStudent.current = studentId;
 
         // emit event instructing student to start sharing their project ArrayBuffer
-        socketRef.current.emit('send project sb3', activeStudent.current);
+        dataChannel.current.send('send project sb3');
 
         // re-render component
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () => {
