@@ -268,48 +268,20 @@ class ClassroomGUI extends React.Component {
         const video = document.getElementById('video');
         video.focus();
 
-        const clickLocation = this.getClickProportion(event);
-
-        socketRef.current.emit('mouse', {
-            studentID: activeStudent.current,
-            x: clickLocation.x,
-            y: clickLocation.y,
-            type: 'click'
-        });
+        this.handleMouseEvent(event, 'click');
     }
 
     handleMouseDown = (event) => {
-        const clickLocation = this.getClickProportion(event);
-
-        socketRef.current.emit('mouse', {
-            studentID: activeStudent.current,
-            x: clickLocation.x,
-            y: clickLocation.y,
-            type: 'mousedown'
-        })
+        this.handleMouseEvent(event, 'mousedown');
 
     }
 
     handleMouseUp = (event) => {
-        const clickLocation = this.getClickProportion(event);
-
-        socketRef.current.emit('mouse', {
-            studentID: activeStudent.current,
-            x: clickLocation.x,
-            y: clickLocation.y,
-            type: 'mouseup'
-        });
+        this.handleMouseEvent(event, 'mouseup');
     }
 
     handleDrag(event) {
-        const clickLocation = this.getClickProportion(event);
-
-        socketRef.current.emit('mouse', {
-            studentID: activeStudent.current,
-            x: clickLocation.x,
-            y: clickLocation.y,
-            type: 'mousemove'
-        });
+        this.handleMouseEvent(event, 'mousemove');
     }
 
     handleDragStart(event) {
@@ -318,6 +290,22 @@ class ClassroomGUI extends React.Component {
 
     handleDragEnd(event) {
         this.handleMouseUp(event);
+    }
+
+    handleMouseEvent(event, name) {
+        const clickLocation = this.getClickProportion(event);
+
+        var event = {
+            type: 'mouse',
+            studentID: activeStudent.current,
+            x: clickLocation.x,
+            y: clickLocation.y,
+            name: name
+        };
+
+        var json = JSON.stringify(event);
+
+        dataChannel.current.send(json);
     }
 
     /**
@@ -340,17 +328,24 @@ class ClassroomGUI extends React.Component {
 
     handleKeyPress(event) {
         const keyEvent = event.nativeEvent;
-        socketRef.current.emit('key', {
+
+        var event = {
+            type: 'key',
             studentID: activeStudent.current,
             key: keyEvent.key,
             code: keyEvent.code
-        });
+        }
+
+        var json = JSON.stringify(event);
+
+        dataChannel.current.send(json);
     }
 
     handleWheel(event) {
         const scrollLocation = this.getClickProportion(event);
 
-        socketRef.current.emit('wheel', {
+        var event = {
+            type: 'wheel',
             studentID: activeStudent.current,
             x: scrollLocation.x,
             y: scrollLocation.y,
@@ -358,7 +353,11 @@ class ClassroomGUI extends React.Component {
             deltaY: event.deltaY,
             deltaZ: event.deltaZ,
             deltaMode: event.deltaMode
-        });
+        }
+
+        var json = JSON.stringify(event);
+
+        dataChannel.current.send(json);
 
     }
 

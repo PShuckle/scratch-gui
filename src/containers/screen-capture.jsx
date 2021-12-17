@@ -83,6 +83,9 @@ const ScreenCapture = props => {
         else if (event.data === 'stop sb3 stream') {
             stopStreamProjectSb3();
         }
+        else {
+            handleScreenControlEvent(JSON.parse(event.data));
+        }
     }
 
     /**
@@ -272,6 +275,21 @@ const ScreenCapture = props => {
             .catch(e => console.log(e));
     }
 
+    function handleScreenControlEvent(event) {
+        if (event.type === 'mouse') {
+            handleMouseEvent(event);
+        }
+        else if (event.type === 'key') {
+            handleKeyEvent(event);
+        }
+        else if (event.type === 'wheel') {
+            handleWheelEvent(event);
+        }
+        else {
+            console.error('Unknown event type');
+        }
+    }
+
     /**
      * Allow tutor to control the screen by dispatching mouse events being sent from the tutor 
      * interacting with the video
@@ -292,7 +310,7 @@ const ScreenCapture = props => {
         }
 
         // fire the event
-        element.dispatchEvent(new MouseEvent(event.type,
+        element.dispatchEvent(new MouseEvent(event.name,
             {
                 clientX: x,
                 clientY: y,
