@@ -146,7 +146,7 @@ class Blocks extends React.Component {
             if (event.code === 'Space') {
                 var codeGenerator = this.props.vm.generator;
                 console.log(codeGenerator.workspaceToCode());
-                eval(codeGenerator.workspaceToCode());
+                // eval(codeGenerator.workspaceToCode());
             }
         });
     }

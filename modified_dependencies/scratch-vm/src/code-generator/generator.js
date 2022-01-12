@@ -1,7 +1,8 @@
 const blockCodes = {
     event: require('./code/event'),
     motion: require('./code/motion'),
-    operators: require('./code/operators')
+    operators: require('./code/operators'),
+    other: require('./code/other')
 };
 
 class Generator {
@@ -33,6 +34,8 @@ class Generator {
             this.targetNameLookup[this.targetName] = target;
             this.activeBlocks = target.blocks._blocks;
 
+            console.log(this.activeBlocks);
+
             // get all blocks owned by this target that can start scripts
             var scripts = target.blocks.getScripts();
 
@@ -57,6 +60,9 @@ class Generator {
                 return code;
             }
         }
+
+        // if block is null, return blank sting
+        return '';
     }
 }
 
