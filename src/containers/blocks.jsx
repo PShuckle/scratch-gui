@@ -7,6 +7,8 @@ import React from 'react';
 import VMScratchBlocks from '../lib/blocks';
 import VM from 'scratch-vm';
 
+import FileUploadButton from '../components/file-upload-button/file-upload-button.jsx';
+
 import log from '../lib/log.js';
 import Prompt from './prompt.jsx';
 import BlocksComponent from '../components/blocks/blocks.jsx';
@@ -14,18 +16,18 @@ import ExtensionLibrary from './extension-library.jsx';
 import extensionData from '../lib/libraries/extensions/index.jsx';
 import CustomProcedures from './custom-procedures.jsx';
 import errorBoundaryHOC from '../lib/error-boundary-hoc.jsx';
-import {BLOCKS_DEFAULT_SCALE, STAGE_DISPLAY_SIZES} from '../lib/layout-constants';
+import { BLOCKS_DEFAULT_SCALE, STAGE_DISPLAY_SIZES } from '../lib/layout-constants';
 import DropAreaHOC from '../lib/drop-area-hoc.jsx';
 import DragConstants from '../lib/drag-constants';
 import defineDynamicBlock from '../lib/define-dynamic-block';
 
-import {connect} from 'react-redux';
-import {updateToolbox} from '../reducers/toolbox';
-import {activateColorPicker} from '../reducers/color-picker';
-import {closeExtensionLibrary, openSoundRecorder, openConnectionModal} from '../reducers/modals';
-import {activateCustomProcedures, deactivateCustomProcedures} from '../reducers/custom-procedures';
-import {setConnectionModalExtensionId} from '../reducers/connection-modal';
-import {updateMetrics} from '../reducers/workspace-metrics';
+import { connect } from 'react-redux';
+import { updateToolbox } from '../reducers/toolbox';
+import { activateColorPicker } from '../reducers/color-picker';
+import { closeExtensionLibrary, openSoundRecorder, openConnectionModal } from '../reducers/modals';
+import { activateCustomProcedures, deactivateCustomProcedures } from '../reducers/custom-procedures';
+import { setConnectionModalExtensionId } from '../reducers/connection-modal';
+import { updateMetrics } from '../reducers/workspace-metrics';
 
 import {
     activateTab,
@@ -46,12 +48,13 @@ const DroppableBlocks = DropAreaHOC([
 ])(BlocksComponent);
 
 class Blocks extends React.Component {
-    constructor (props) {
+    constructor(props) {
         super(props);
         this.ScratchBlocks = VMScratchBlocks(props.vm);
         bindAll(this, [
             'attachVM',
             'detachVM',
+            'generateWorkspaceXML',
             'getToolboxXML',
             'handleCategorySelected',
             'handleConnectionModalStart',
@@ -85,7 +88,7 @@ class Blocks extends React.Component {
         this.onTargetsUpdate = debounce(this.onTargetsUpdate, 100);
         this.toolboxUpdateQueue = [];
     }
-    componentDidMount () {
+    componentDidMount() {
         this.ScratchBlocks.FieldColourSlider.activateEyedropper_ = this.props.onActivateColorPicker;
         this.ScratchBlocks.Procedures.externalProcedureDefCallback = this.props.onActivateCustomProcedures;
         this.ScratchBlocks.ScratchMsgs.setLocale(this.props.locale);
@@ -93,7 +96,7 @@ class Blocks extends React.Component {
         const workspaceConfig = defaultsDeep({},
             Blocks.defaultOptions,
             this.props.options,
-            {rtl: this.props.isRtl, toolbox: this.props.toolboxXML}
+            { rtl: this.props.isRtl, toolbox: this.props.toolboxXML }
         );
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
 
@@ -150,7 +153,7 @@ class Blocks extends React.Component {
             }
         });
     }
-    shouldComponentUpdate (nextProps, nextState) {
+    shouldComponentUpdate(nextProps, nextState) {
         return (
             this.state.prompt !== nextState.prompt ||
             this.props.isVisible !== nextProps.isVisible ||
@@ -162,7 +165,7 @@ class Blocks extends React.Component {
             this.props.stageSize !== nextProps.stageSize
         );
     }
-    componentDidUpdate (prevProps) {
+    componentDidUpdate(prevProps) {
         // If any modals are open, call hideChaff to close z-indexed field editors
         if (this.props.anyModalVisible && !prevProps.anyModalVisible) {
             this.ScratchBlocks.hideChaff();
@@ -200,18 +203,18 @@ class Blocks extends React.Component {
             this.workspace.setVisible(false);
         }
     }
-    componentWillUnmount () {
+    componentWillUnmount() {
         this.detachVM();
         this.workspace.dispose();
         clearTimeout(this.toolboxUpdateTimeout);
     }
-    requestToolboxUpdate () {
+    requestToolboxUpdate() {
         clearTimeout(this.toolboxUpdateTimeout);
         this.toolboxUpdateTimeout = setTimeout(() => {
             this.updateToolbox();
         }, 0);
     }
-    setLocale () {
+    setLocale() {
         this.ScratchBlocks.ScratchMsgs.setLocale(this.props.locale);
         this.props.vm.setLocale(this.props.locale, this.props.messages)
             .then(() => {
@@ -224,7 +227,7 @@ class Blocks extends React.Component {
             });
     }
 
-    updateToolbox () {
+    updateToolbox() {
         this.toolboxUpdateTimeout = false;
 
         const categoryId = this.workspace.toolbox_.getSelectedCategoryId();
@@ -250,7 +253,7 @@ class Blocks extends React.Component {
         queue.forEach(fn => fn());
     }
 
-    withToolboxUpdates (fn) {
+    withToolboxUpdates(fn) {
         // if there is a queued toolbox update, we need to wait
         if (this.toolboxUpdateTimeout) {
             this.toolboxUpdateQueue.push(fn);
@@ -259,7 +262,7 @@ class Blocks extends React.Component {
         }
     }
 
-    attachVM () {
+    attachVM() {
         this.workspace.addChangeListener(this.props.vm.blockListener);
         this.flyoutWorkspace = this.workspace
             .getFlyout()
@@ -278,7 +281,7 @@ class Blocks extends React.Component {
         this.props.vm.addListener('PERIPHERAL_CONNECTED', this.handleStatusButtonUpdate);
         this.props.vm.addListener('PERIPHERAL_DISCONNECTED', this.handleStatusButtonUpdate);
     }
-    detachVM () {
+    detachVM() {
         this.props.vm.removeListener('SCRIPT_GLOW_ON', this.onScriptGlowOn);
         this.props.vm.removeListener('SCRIPT_GLOW_OFF', this.onScriptGlowOff);
         this.props.vm.removeListener('BLOCK_GLOW_ON', this.onBlockGlowOn);
@@ -292,7 +295,7 @@ class Blocks extends React.Component {
         this.props.vm.removeListener('PERIPHERAL_DISCONNECTED', this.handleStatusButtonUpdate);
     }
 
-    updateToolboxBlockValue (id, value) {
+    updateToolboxBlockValue(id, value) {
         this.withToolboxUpdates(() => {
             const block = this.workspace
                 .getFlyout()
@@ -304,7 +307,7 @@ class Blocks extends React.Component {
         });
     }
 
-    onTargetsUpdate () {
+    onTargetsUpdate() {
         if (this.props.vm.editingTarget && this.workspace.getFlyout()) {
             ['glide', 'move', 'set'].forEach(prefix => {
                 this.updateToolboxBlockValue(`${prefix}x`, Math.round(this.props.vm.editingTarget.x).toString());
@@ -312,7 +315,7 @@ class Blocks extends React.Component {
             });
         }
     }
-    onWorkspaceMetricsChange () {
+    onWorkspaceMetricsChange() {
         const target = this.props.vm.editingTarget;
         if (target && target.id) {
             // Dispatch updateMetrics later, since onWorkspaceMetricsChange may be (very indirectly)
@@ -328,27 +331,27 @@ class Blocks extends React.Component {
             }, 0);
         }
     }
-    onScriptGlowOn (data) {
+    onScriptGlowOn(data) {
         this.workspace.glowStack(data.id, true);
     }
-    onScriptGlowOff (data) {
+    onScriptGlowOff(data) {
         this.workspace.glowStack(data.id, false);
     }
-    onBlockGlowOn (data) {
+    onBlockGlowOn(data) {
         this.workspace.glowBlock(data.id, true);
     }
-    onBlockGlowOff (data) {
+    onBlockGlowOff(data) {
         this.workspace.glowBlock(data.id, false);
     }
-    onVisualReport (data) {
+    onVisualReport(data) {
         this.workspace.reportValue(data.id, data.value);
     }
-    getToolboxXML () {
+    getToolboxXML() {
         // Use try/catch because this requires digging pretty deep into the VM
         // Code inside intentionally ignores several error situations (no stage, etc.)
         // Because they would get caught by this try/catch
         try {
-            let {editingTarget: target, runtime} = this.props.vm;
+            let { editingTarget: target, runtime } = this.props.vm;
             const stage = runtime.getTargetForStage();
             if (!target) target = stage; // If no editingTarget, use the stage
 
@@ -365,7 +368,7 @@ class Blocks extends React.Component {
             return null;
         }
     }
-    onWorkspaceUpdate (data) {
+    onWorkspaceUpdate(data) {
         // When we change sprites, update the toolbox to have the new sprite's blocks
         const toolboxXML = this.getToolboxXML();
         if (toolboxXML) {
@@ -399,7 +402,7 @@ class Blocks extends React.Component {
         this.workspace.addChangeListener(this.props.vm.blockListener);
 
         if (this.props.vm.editingTarget && this.props.workspaceMetrics.targets[this.props.vm.editingTarget.id]) {
-            const {scrollX, scrollY, scale} = this.props.workspaceMetrics.targets[this.props.vm.editingTarget.id];
+            const { scrollX, scrollY, scale } = this.props.workspaceMetrics.targets[this.props.vm.editingTarget.id];
             this.workspace.scrollX = scrollX;
             this.workspace.scrollY = scrollY;
             this.workspace.scale = scale;
@@ -411,7 +414,7 @@ class Blocks extends React.Component {
         // workspace to be 'undone' here.
         this.workspace.clearUndo();
     }
-    handleExtensionAdded (categoryInfo) {
+    handleExtensionAdded(categoryInfo) {
         const defineBlocks = blockInfoArray => {
             if (blockInfoArray && blockInfoArray.length > 0) {
                 const staticBlocksJson = [];
@@ -452,11 +455,11 @@ class Blocks extends React.Component {
             this.props.updateToolboxState(toolboxXML);
         }
     }
-    handleBlocksInfoUpdate (categoryInfo) {
+    handleBlocksInfoUpdate(categoryInfo) {
         // @todo Later we should replace this to avoid all the warnings from redefining blocks.
         this.handleExtensionAdded(categoryInfo);
     }
-    handleCategorySelected (categoryId) {
+    handleCategorySelected(categoryId) {
         const extension = extensionData.find(ext => ext.extensionId === categoryId);
         if (extension && extension.launchPeripheralConnectionFlow) {
             this.handleConnectionModalStart(categoryId);
@@ -466,11 +469,11 @@ class Blocks extends React.Component {
             this.workspace.toolbox_.setSelectedCategoryById(categoryId);
         });
     }
-    setBlocks (blocks) {
+    setBlocks(blocks) {
         this.blocks = blocks;
     }
-    handlePromptStart (message, defaultValue, callback, optTitle, optVarType) {
-        const p = {prompt: {callback, message, defaultValue}};
+    handlePromptStart(message, defaultValue, callback, optTitle, optVarType) {
+        const p = { prompt: { callback, message, defaultValue } };
         p.prompt.title = optTitle ? optTitle :
             this.ScratchBlocks.Msg.VARIABLE_MODAL_TITLE;
         p.prompt.varType = typeof optVarType === 'string' ?
@@ -482,13 +485,13 @@ class Blocks extends React.Component {
         p.prompt.showCloudOption = (optVarType === this.ScratchBlocks.SCALAR_VARIABLE_TYPE) && this.props.canUseCloud;
         this.setState(p);
     }
-    handleConnectionModalStart (extensionId) {
+    handleConnectionModalStart(extensionId) {
         this.props.onOpenConnectionModal(extensionId);
     }
-    handleStatusButtonUpdate () {
+    handleStatusButtonUpdate() {
         this.ScratchBlocks.refreshStatusButtons(this.workspace);
     }
-    handleOpenSoundRecorder () {
+    handleOpenSoundRecorder() {
         this.props.onOpenSoundRecorder();
     }
 
@@ -497,23 +500,23 @@ class Blocks extends React.Component {
      * and additional potentially conflicting variable names from the VM
      * to the variable validation prompt callback used in scratch-blocks.
      */
-    handlePromptCallback (input, variableOptions) {
+    handlePromptCallback(input, variableOptions) {
         this.state.prompt.callback(
             input,
             this.props.vm.runtime.getAllVarNamesOfType(this.state.prompt.varType),
             variableOptions);
         this.handlePromptClose();
     }
-    handlePromptClose () {
-        this.setState({prompt: null});
+    handlePromptClose() {
+        this.setState({ prompt: null });
     }
-    handleCustomProceduresClose (data) {
+    handleCustomProceduresClose(data) {
         this.props.onRequestCloseCustomProcedures(data);
         const ws = this.workspace;
         ws.refreshToolboxSelection_();
         ws.toolbox_.scrollToCategoryById('myBlocks');
     }
-    handleDrop (dragInfo) {
+    handleDrop(dragInfo) {
         fetch(dragInfo.payload.bodyUrl)
             .then(response => response.json())
             .then(blocks => this.props.vm.shareBlocksToTarget(blocks, this.props.vm.editingTarget.id))
@@ -522,9 +525,19 @@ class Blocks extends React.Component {
                 this.updateToolbox(); // To show new variables/custom blocks
             });
     }
-    
+    generateWorkspaceXML() {
+        console.log(this.ScratchBlocks);
 
-    render () {
+        var workspace = this.ScratchBlocks.getMainWorkspace();
+        console.log(this.ScratchBlocks.Xml.workspaceToDom(workspace));
+
+    }
+
+    handleUploadXML() {
+        
+    }
+
+    render() {
         /* eslint-disable no-unused-vars */
         const {
             anyModalVisible,
@@ -551,13 +564,17 @@ class Blocks extends React.Component {
 
         /* eslint-enable no-unused-vars */
         return (
-            
+
             <React.Fragment>
                 <DroppableBlocks
                     componentRef={this.setBlocks}
                     onDrop={this.handleDrop}
                     {...props}
                 />
+                <button style={{ 'position': 'absolute', 'z-index': '9' }} onClick={this.generateWorkspaceXML}>testing</button>
+                <FileUploadButton
+                    ScratchBlocks = {this.ScratchBlocks}
+                ></FileUploadButton>
                 {this.state.prompt ? (
                     <Prompt
                         defaultValue={this.state.prompt.defaultValue}

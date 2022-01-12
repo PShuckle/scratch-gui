@@ -13,7 +13,7 @@ class ScreenCaptureThumbnail extends React.Component {
         super(props);
         this.vm = props.vm;
         this.ScratchBlocks = VMScratchBlocks(this.vm);
-
+        
         this.onClick = props.onClick;
         this.name = props.name;
         this.blocks = props.blocks;
