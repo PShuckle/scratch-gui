@@ -38,7 +38,7 @@ class Motion {
         const nextBlock = this.generator.activeBlocks[block.next];
         const inputs = block.inputs;
 
-        var code = this.targetName + '.' + func + '(';
+        var code = this.targetName + '.motion.' + func + '(';
 
         Object.keys(inputs).forEach((input) => {
             var inputBlock = this.generator.activeBlocks[inputs[input].block];
@@ -65,22 +65,22 @@ class Motion {
     motion_setRotationStyle (block) {
         const nextBlock = this.generator.activeBlocks[block.next];
 
-        var code = this.targetName + '.setRotationStyle(' + block.fields.STYLE.value + ');\n'
+        var code = this.targetName + '.motion.setRotationStyle(' + block.fields.STYLE.value + ');\n'
         + this.generator.blockToCode(nextBlock);
 
         return code;
     }
 
     motion_getXPosition () {
-        return this.targetName + '.xPosition';
+        return this.targetName + '.motion.xPosition';
     }
 
     motion_getYPosition () {
-        return this.targetName + '.yPosition';
+        return this.targetName + '.motion.yPosition';
     }
 
     motion_getDirection () {
-        return this.targetName + '.direction';
+        return this.targetName + '.motion.direction';
     }
 }
 
