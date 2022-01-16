@@ -5,6 +5,13 @@ const blockCodes = {
     // other: require('./code/other')
 };
 
+Element.prototype.next = function (nextBlock) {
+    const next = document.createElement('next');
+    this.appendChild(next);
+    next.appendChild(nextBlock);
+    return this;
+}
+
 class Generator {
     constructor(runtime) {
         this.runtime = runtime;
@@ -40,7 +47,7 @@ class Generator {
             var scripts = target.blocks.getScripts();
 
             scripts.forEach(blockID => {
-                code += this.blockToCode(this.activeBlocks[blockID]);
+                code += this.blockToExecutableCode(this.activeBlocks[blockID]);
             });
         });
         // console.log(code);
@@ -51,7 +58,7 @@ class Generator {
      * 
      * @param {!Element} xml 
      */
-    domToJavascript(xml, targetName) {
+    domToExecutableJavascript(xml, targetName) {
         this.targetName = targetName;
 
         var code = '';
@@ -63,7 +70,7 @@ class Generator {
             console.log(xmlChild);
             var name = xmlChild.nodeName.toLowerCase();
             if (name == 'block') {
-                code += this.blockToCode(xmlChild);
+                code += this.blockToExecutableCode(xmlChild);
                 code += ';\n\n';
             }
         }
@@ -81,16 +88,26 @@ class Generator {
             var childNode = blockChildNodes[i];
             var name = childNode.nodeName.toLowerCase();
             if (name == 'value') {
+                // childrenBlockCode.inputs[childNode.getAttribute('name')] = {};
+                // childNode.childNodes.forEach(childBlock => {
+                //     if (childBlock.nodeName.toLowerCase() == 'shadow') {
+                //         childrenBlockCode.inputs[childNode.getAttribute('name')].shadow =
+                //             this.blockToCode(childBlock);
+                //     } else {
+                //         childrenBlockCode.inputs[childNode.getAttribute('name')].block =
+                //             this.blockToCode(childBlock);
+                //     }
+                // })
                 var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
-                childrenBlockCode.inputs[childNode.getAttribute('name')] = this.blockToCode(childBlock);
+                childrenBlockCode.inputs[childNode.getAttribute('name')] = this.blockToExecutableCode(childBlock);
             } else if (name == 'field') {
                 childrenBlockCode.inputs[childNode.getAttribute('name')] = childNode.textContent;
             } else if (name == 'statement') {
                 childrenBlockCode.inputs[childNode.getAttribute('name')] = '{' +
-                    this.blockToCode(childBlock) + '}';
+                    this.blockToExecutableCode(childBlock) + '}';
             } else if (name == 'next') {
                 var nextBlock = childNode.childNodes[0];
-                childrenBlockCode.next = '.next(\n' + this.blockToCode(nextBlock) + ')';
+                childrenBlockCode.next = '.next(\n' + this.blockToExecutableCode(nextBlock) + ')';
             }
         }
 
@@ -103,14 +120,14 @@ class Generator {
      * @param {*} block 
      * @returns code representing the block
      */
-    blockToCode(block) {
+    blockToExecutableCode(block) {
         const childNodes = block.childNodes;
 
         const childrenBlockCode = this.handleChildren(childNodes);
 
         const inputs = childrenBlockCode.inputs;
 
-        var code = block.getAttribute('type') + '(';
+        var code = 'this.' + block.getAttribute('type') + '(';
 
         Object.keys(inputs).forEach((input) => {
             code += inputs[input];
@@ -122,6 +139,67 @@ class Generator {
         code += childrenBlockCode.next;
 
         return code;
+    }
+
+    createBlock(type, inputs, shadow) {
+        var block;
+
+        if (shadow) {
+            block = document.createElement('shadow');
+        }
+        else {
+            block = document.createElement('block');
+        }
+        
+        block.setAttribute('type', type);
+
+        const values = inputs.values;
+        const fields = inputs.fields;
+
+        if (values) {
+            Object.keys(values).forEach((valueName) => {
+                const value = document.createElement('value');
+                block.appendChild(value);
+                value.setAttribute('name', valueName);
+                value.appendChild(values[valueName]);
+            });
+        }
+        
+        if (fields) {
+            Object.keys(fields).forEach((fieldName) => {
+                const field = document.createElement('field');
+                block.appendChild(field);
+                field.setAttribute('name', fieldName);
+                field.textContent = fields[fieldName];
+            });
+        }
+
+        
+
+        return block;
+    }
+
+    math_number(num) {
+        return this.createBlock('math_number', {
+            fields: {
+                NUM: num
+            }
+        }, true);
+    }
+
+    motion_movesteps(steps) {
+        return this.createBlock('motion_movesteps', {
+            values: {
+                STEPS: steps
+            }
+        });
+    }
+
+    javascriptToXml(javascript) {
+        const topBlock = eval(javascript);
+        const xml = document.createElement('xml');
+        xml.appendChild(topBlock);
+        return xml;
     }
 }
 

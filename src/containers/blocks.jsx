@@ -529,7 +529,7 @@ class Blocks extends React.Component {
 
     workspaceToJavascript() {
         var xml = this.generateWorkspaceXML();
-        this.props.vm.generator.domToJavascript(xml);
+        var js = this.props.vm.generator.domToExecutableJavascript(xml);
     }
 
     generateWorkspaceXML() {
@@ -583,6 +583,7 @@ class Blocks extends React.Component {
                 <button style={{ 'position': 'absolute', 'z-index': '9' }} onClick={this.workspaceToJavascript}>testing</button>
                 <FileUploadButton
                     ScratchBlocks = {this.ScratchBlocks}
+                    vm = {this.props.vm}
                 ></FileUploadButton>
                 {this.state.prompt ? (
                     <Prompt
