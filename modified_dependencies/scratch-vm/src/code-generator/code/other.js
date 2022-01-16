@@ -6,7 +6,8 @@ class Other {
 
     getCode (block) {
         if (block) {
-            switch (block.opcode) {
+            const opcode = block.getAttribute('type');
+            switch (opcode) {
                 case('math_number') : return this.math_number(block);
                 case('math_whole_number') : return this.math_number(block);
                 case('text') : return this.text(block);
@@ -18,12 +19,14 @@ class Other {
     }
 
     math_number(block) {
-        var code = block.fields.NUM.value;
+        const childBlockCode = this.generator.handleChildren(block.childNodes);
+        const code = childBlockCode.inputs.NUM;
         return code;
     }
 
     text(block) {
-        var code = block.fields.TEXT.value;
+        const field = block.childNodes[0];
+        var code = field.textContent;
         return code;
     }
 }

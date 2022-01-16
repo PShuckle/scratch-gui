@@ -76,7 +76,8 @@ class Blocks extends React.Component {
             'onWorkspaceUpdate',
             'onWorkspaceMetricsChange',
             'setBlocks',
-            'setLocale'
+            'setLocale',
+            'workspaceToJavascript'
         ]);
         this.ScratchBlocks.prompt = this.handlePromptStart;
         this.ScratchBlocks.statusButtonCallback = this.handleConnectionModalStart;
@@ -525,11 +526,19 @@ class Blocks extends React.Component {
                 this.updateToolbox(); // To show new variables/custom blocks
             });
     }
-    generateWorkspaceXML() {
-        console.log(this.ScratchBlocks);
 
+    workspaceToJavascript() {
+        var xml = this.generateWorkspaceXML();
+        this.props.vm.generator.domToJavascript(xml);
+    }
+
+    generateWorkspaceXML() {
         var workspace = this.ScratchBlocks.getMainWorkspace();
-        console.log(this.ScratchBlocks.Xml.workspaceToDom(workspace));
+
+        var xml = this.ScratchBlocks.Xml.workspaceToDom(workspace);
+        console.log(xml);
+
+        return xml;
 
     }
 
@@ -571,7 +580,7 @@ class Blocks extends React.Component {
                     onDrop={this.handleDrop}
                     {...props}
                 />
-                <button style={{ 'position': 'absolute', 'z-index': '9' }} onClick={this.generateWorkspaceXML}>testing</button>
+                <button style={{ 'position': 'absolute', 'z-index': '9' }} onClick={this.workspaceToJavascript}>testing</button>
                 <FileUploadButton
                     ScratchBlocks = {this.ScratchBlocks}
                 ></FileUploadButton>
