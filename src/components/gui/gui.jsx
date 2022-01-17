@@ -338,6 +338,7 @@ const GUIComponent = props => {
                                     <Box className={styles.shareScreenButton}>
                                         <SB3Downloader>{(className, downloadProject, saveProjectSb3) => (
                                             <ScreenCaptureButton
+                                                vm = {vm}
                                                 workspace={workspaceRef}
                                                 saveProjectSb3={saveProjectSb3}
                                             />

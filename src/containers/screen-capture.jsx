@@ -3,6 +3,9 @@ import React, {
     useEffect
 } from "react";
 import io from "socket.io-client";
+
+import VMScratchBlocks from '../lib/blocks';
+
 import adapter from 'webrtc-adapter';
 import { copyWithin } from "react-style-proptype/src/css-properties";
 
@@ -15,6 +18,8 @@ const ScreenCapture = props => {
     const userStream = useRef();
     const dataChannel = useRef();
     const sb3Stream = useRef();
+
+    const ScratchBlocks = VMScratchBlocks(props.vm);
 
     useEffect(() => {
         userStream.current = null;
@@ -89,82 +94,15 @@ const ScreenCapture = props => {
     }
 
     /**
-     * Start streaming a JSON representation of all the blocks in the workspace
+     * Start streaming an XML representation of all the blocks in the workspace
      */
     function streamWorkspaceBlocks() {
-        const workspaceBlocks = props.workspace.current.blockDB_;
-        const blocksList = {};
-        for (var blockid in workspaceBlocks) {
-            const block = workspaceBlocks[blockid];
+        const xml = ScratchBlocks.Xml.workspaceToDom(props.workspace.current);
 
-            // do not share the black 'ghost' blocks that appear temporarily when dragging blocks
-            // over the workspace near other blocks
-            if (block.colour_ != '#000000') {
-
-                // create a list of the block's children
-                const childBlocks_ = [];
-                for (var i in block.childBlocks_) {
-                    var child = block.childBlocks_[i];
-                    if (child.colour_ != '#000000') {
-                        childBlocks_.push(child.id);
-                    }
-                }
-
-                // get the next block in the stack - this is the block directly underneath the current 
-                // block
-                var nextBlock = null;
-                try {
-                    nextBlock = block.nextConnection.targetConnection.sourceBlock_;
-                    if (nextBlock.colour_ != '#000000') {
-                        nextBlock = nextBlock.id;
-                    }
-                    else {
-                        nextBlock = null;
-                    }
-                }
-                catch {
-
-                }
-
-                // create list of the block's inputs - this includes input fields, dropdowns, 
-                // and substacks in control blocks
-                let inputList = {};
-                for (var i in block.inputList) {
-                    // ignore icon inputs (such as the arrow on the repeat block) as these are 
-                    // automatically generated when the tutor creates a block in the workspace
-                    if (block.inputList[i].connection != null && block.inputList[i].connection.targetConnection) {
-                        inputList[i] = {};
-                        inputList[i]['block'] = block.inputList[i].connection.targetConnection.sourceBlock_.id;
-
-                        // store the type of input - whether it is field, substack, etc
-                        inputList[i]['name'] = block.inputList[i].name;
-                    }
-                }
-
-                // get the block's parent block - this is the previous block in the stack
-                var parentBlock_ = null;
-                if (block.parentBlock_) {
-                    if (block.parentBlock_.colour_ != '#000000') {
-                        parentBlock_ = block.parentBlock_.id;
-                    }
-                }
-
-                // add the block with all previously gathered info into the list of blocks to 
-                // be sent to tutor
-                blocksList[blockid] = {
-                    childBlocks_: childBlocks_,
-                    nextBlock: nextBlock,
-                    parentBlock_: parentBlock_,
-                    inputList: inputList,
-                    id: blockid,
-                    type: block.type
-                };
-            }
-        }
-
-        const eventData = { blocksList: blocksList, sender: socketRef.current.id }
+        const eventData = { xml: xml.outerHTML, sender: socketRef.current.id };
 
         const json = JSON.stringify(eventData);
+
         dataChannel.current.send(json);
     }
 

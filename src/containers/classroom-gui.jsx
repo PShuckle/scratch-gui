@@ -11,6 +11,7 @@ import { injectIntl } from 'react-intl';
 
 import vmListenerHOC from '../lib/vm-listener-hoc.jsx';
 import vmManagerHOC from '../lib/vm-manager-hoc.jsx';
+import VMScratchBlocks from '../lib/blocks';
 
 import Dropdown from '../components/dropdown/dropdown.jsx';
 import Box from '../components/box/box.jsx';
@@ -49,6 +50,8 @@ class ClassroomGUI extends React.Component {
     }
 
     componentDidMount() {
+        
+        this.ScratchBlocks = VMScratchBlocks(this.props.vm);
         this.props.vm.attachAudioEngine(new AudioEngine());
 
         socketRef.current = io('http://localhost:8000');
@@ -110,7 +113,7 @@ class ClassroomGUI extends React.Component {
             }
             // handle incoming blocks JSON string message
             else {
-                this.onBlockJsonMessageReceived(event);
+                this.onWorkspaceXmlReceived(event);
             }
         }
         // handle incoming project to be loaded in the renderer
@@ -124,10 +127,10 @@ class ClassroomGUI extends React.Component {
     }
 
     /**
-     * On receiving a block JSON string as a message, add the blocks to the workspace thumbnail
+     * On receiving a JSON string as a message, decode the xml and and add blocks to workspace
      * @param {*} event 
      */
-    onBlockJsonMessageReceived(event) {
+    onWorkspaceXmlReceived(event) {
         const eventObject = JSON.parse(event.data);
 
         // create new workspace for student if necessary
@@ -136,7 +139,7 @@ class ClassroomGUI extends React.Component {
         }
 
         // update workspace thumbnail with the new blocks list and re-render
-        studentWorkspaceRefs[eventObject.sender].current = eventObject.blocksList;
+        studentWorkspaceRefs[eventObject.sender].current = eventObject.xml;
         this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
     }
 
@@ -372,8 +375,9 @@ class ClassroomGUI extends React.Component {
                     <ScreenCaptureThumbnail
                         key={key}
                         name={studentNames[key]}
-                        blocks={this.state.studentVideos[key].current}
+                        xml={this.state.studentVideos[key].current}
                         onClick={() => this.displayStudentVideo(key)}
+                        ScratchBlocks={this.ScratchBlocks}
                         vm={this.props.vm}
                     >
                     </ScreenCaptureThumbnail>
