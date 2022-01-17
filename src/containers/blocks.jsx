@@ -20,6 +20,7 @@ import { BLOCKS_DEFAULT_SCALE, STAGE_DISPLAY_SIZES } from '../lib/layout-constan
 import DropAreaHOC from '../lib/drop-area-hoc.jsx';
 import DragConstants from '../lib/drag-constants';
 import defineDynamicBlock from '../lib/define-dynamic-block';
+import Generator from '../lib/code-generator/generator'
 
 import { connect } from 'react-redux';
 import { updateToolbox } from '../reducers/toolbox';
@@ -141,6 +142,8 @@ class Blocks extends React.Component {
         if (this.props.isVisible) {
             this.setLocale();
         }
+
+        this.generator = new Generator(this.ScratchBlocks);
     }
     shouldComponentUpdate(nextProps, nextState) {
         return (
@@ -516,8 +519,8 @@ class Blocks extends React.Component {
     }
 
     workspaceToJavascript() {
-        var xml = this.generateWorkspaceXML();
-        var js = this.props.vm.generator.domToExecutableJavascript(xml);
+        // var xml = this.generateWorkspaceXML();
+        var js = this.generator.blocksToJavascript(this.ScratchBlocks);
     }
 
     generateWorkspaceXML() {
@@ -528,10 +531,6 @@ class Blocks extends React.Component {
 
         return xml;
 
-    }
-
-    handleUploadXML() {
-        
     }
 
     render() {
@@ -571,6 +570,7 @@ class Blocks extends React.Component {
                 <button style={{ 'position': 'absolute', 'z-index': '9' }} onClick={this.workspaceToJavascript}>testing</button>
                 <FileUploadButton
                     ScratchBlocks = {this.ScratchBlocks}
+                    generator = {this.generator}
                     vm = {this.props.vm}
                 ></FileUploadButton>
                 {this.state.prompt ? (
