@@ -1,10 +1,3 @@
-const blockCodes = {
-    // event: require('./code/event'),
-    motion: require('./code/motion'),
-    // operators: require('./code/operators'),
-    // other: require('./code/other')
-};
-
 Element.prototype.next = function (nextBlock) {
     const next = document.createElement('next');
     this.appendChild(next);
@@ -30,28 +23,6 @@ class Generator {
          * name of the sprite representing the current target
          */
         this.targetName = '';
-    }
-
-    // generate compilable code for the whole workspace
-    workspaceToCode() {
-        var code = '';
-
-        this.runtime.targets.forEach(target => {
-            this.targetName = target.sprite.name;
-            this.targetNameLookup[this.targetName] = target;
-            this.activeBlocks = target.blocks._blocks;
-
-            console.log(this.activeBlocks);
-
-            // get all blocks owned by this target that can start scripts
-            var scripts = target.blocks.getScripts();
-
-            scripts.forEach(blockID => {
-                code += this.blockToExecutableCode(this.activeBlocks[blockID]);
-            });
-        });
-        // console.log(code);
-        return code;
     }
 
     /**

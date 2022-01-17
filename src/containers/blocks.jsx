@@ -141,18 +141,6 @@ class Blocks extends React.Component {
         if (this.props.isVisible) {
             this.setLocale();
         }
-
-        // TODO: find better way of accessing vm from window
-        window.vm = this.props.vm;
-
-        // generate compilable code for workspace whenever spacebar is pressed
-        window.addEventListener('keydown', (event) => {
-            if (event.code === 'Space') {
-                var codeGenerator = this.props.vm.generator;
-                console.log(codeGenerator.workspaceToCode());
-                // eval(codeGenerator.workspaceToCode());
-            }
-        });
     }
     shouldComponentUpdate(nextProps, nextState) {
         return (
