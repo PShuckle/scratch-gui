@@ -50,7 +50,7 @@ function handleChildren(blockChildNodes) {
                 blockToExecutableCode(childBlock) + '}';
         } else if (name == 'next') {
             var nextBlock = childNode.childNodes[0];
-            childrenBlockCode.next = '.next(\n' + blockToExecutableCode(nextBlock) + ')';
+            childrenBlockCode.next = '.next(\n' + blockToExecutableCode(nextBlock) + ', )';
         }
     }
 

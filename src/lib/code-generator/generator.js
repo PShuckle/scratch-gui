@@ -1,5 +1,7 @@
 import xmlToJavascript from './xml-executable-js';
 import javascriptToXml from './executable-js-to-xml';
+import executableToReadable from './executable-to-readable-js';
+import readableToexecutable from './readable-to-executable-js';
 
 class Generator {
     constructor (ScratchBlocks) {
@@ -10,10 +12,12 @@ class Generator {
     blocksToJavascript() {
         const xml = this.ScratchBlocks.Xml.workspaceToDom(this.workspace);
         const js = xmlToJavascript(xml);
+        executableToReadable(js);
     }
 
     javascriptToDom(javascript) {
-        const xml = javascriptToXml(javascript);
+        const executableJs = readableToexecutable(javascript);
+        const xml = javascriptToXml(executableJs);
         this.ScratchBlocks.Xml.clearWorkspaceAndLoadFromXml(xml, this.workspace);
     }
 }

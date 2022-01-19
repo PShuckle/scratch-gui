@@ -1,15 +1,18 @@
-
 export default function javascriptToXml(javascript) {
     const topBlock = eval(javascript);
     const xml = document.createElement('xml');
     xml.appendChild(topBlock);
+    
     return xml;
 }
 
 Element.prototype.next = function (nextBlock) {
-    const next = document.createElement('next');
-    this.appendChild(next);
-    next.appendChild(nextBlock);
+    if (nextBlock) {
+        const next = document.createElement('next');
+        this.appendChild(next);
+        next.appendChild(nextBlock);
+        return this;
+    }
     return this;
 }
 
@@ -64,4 +67,11 @@ function motion_movesteps(steps) {
     });
 }
 
-
+function operator_add(num1, num2) {
+    return createBlock('operator_add', {
+        values: {
+            NUM1: num1,
+            NUM2: num2
+        }
+    })
+}
