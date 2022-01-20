@@ -2,7 +2,7 @@ export default function javascriptToXml(javascript) {
     const topBlock = eval(javascript);
     const xml = document.createElement('xml');
     xml.appendChild(topBlock);
-    
+
     return xml;
 }
 
@@ -29,6 +29,7 @@ function createBlock(type, inputs, shadow) {
 
     const values = inputs.values;
     const fields = inputs.fields;
+    const statements = inputs.statements;
 
     if (values) {
         Object.keys(values).forEach((valueName) => {
@@ -45,6 +46,16 @@ function createBlock(type, inputs, shadow) {
             block.appendChild(field);
             field.setAttribute('name', fieldName);
             field.textContent = fields[fieldName];
+        });
+    }
+
+    if (statements) {
+        Object.keys(statements).forEach((statementName) => {
+            const statement = document.createElement('statement');
+            block.appendChild(statement);
+            statement.setAttribute('name', statementName);
+            const statementBlock = statements[statementName]();
+            statement.appendChild(statementBlock);
         });
     }
 
@@ -74,4 +85,15 @@ function operator_add(num1, num2) {
             NUM2: num2
         }
     })
+}
+
+function control_repeat(times, substack) {
+    return createBlock('control_repeat', {
+        values: {
+            TIMES: times
+        },
+        statements: {
+            SUBSTACK: substack
+        }
+    });
 }

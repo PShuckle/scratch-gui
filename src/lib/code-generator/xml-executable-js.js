@@ -31,23 +31,15 @@ function handleChildren(blockChildNodes) {
         var childNode = blockChildNodes[i];
         var name = childNode.nodeName.toLowerCase();
         if (name == 'value') {
-            // childrenBlockCode.inputs[childNode.getAttribute('name')] = {};
-            // childNode.childNodes.forEach(childBlock => {
-            //     if (childBlock.nodeName.toLowerCase() == 'shadow') {
-            //         childrenBlockCode.inputs[childNode.getAttribute('name')].shadow =
-            //             this.blockToCode(childBlock);
-            //     } else {
-            //         childrenBlockCode.inputs[childNode.getAttribute('name')].block =
-            //             this.blockToCode(childBlock);
-            //     }
-            // })
             var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
             childrenBlockCode.inputs[childNode.getAttribute('name')] = blockToExecutableCode(childBlock);
         } else if (name == 'field') {
             childrenBlockCode.inputs[childNode.getAttribute('name')] = childNode.textContent;
+            var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
         } else if (name == 'statement') {
-            childrenBlockCode.inputs[childNode.getAttribute('name')] = '{' +
-                blockToExecutableCode(childBlock) + '}';
+            var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
+            childrenBlockCode.inputs[childNode.getAttribute('name')] = '{\n' +
+                blockToExecutableCode(childBlock) + ';\n}';
         } else if (name == 'next') {
             var nextBlock = childNode.childNodes[0];
             childrenBlockCode.next = '.next(\n' + blockToExecutableCode(nextBlock) + ', )';

@@ -1,17 +1,14 @@
 export default function readableToexecutableJs(js) {
-
-    let endOfLine = js.search(';');
+    let endOfLine = js.search(/;\s\s/);
 
     while (endOfLine != -1) {
         let endOfStack = findEndOfStack(js, endOfLine);
 
         let childBlocks = js.substring(endOfLine + 1, endOfStack);
 
-        js = js.replaceBetween(endOfLine, endOfStack, '.next(' + childBlocks + ')');
+        js = js.replaceBetween(endOfLine, endOfStack, '.next(' + childBlocks + '\r\n)');
 
-        console.log(js);
-
-        endOfLine = js.search(';');
+        endOfLine = js.search(/;\s\s/);
     }
 
     var innermostBracketPattern = /\([^\(\)]*\)/g;
@@ -23,12 +20,15 @@ export default function readableToexecutableJs(js) {
             var trimmedContents = contents.substring(1, contents.length - 1);
             if (matchExact(contents, /\(\d+\)/)) {
                 js = js.replace(contents, 'math_numberbr_OPEN' + trimmedContents + 'br_CLOSE');
-            } 
-            else if (matchExact(contents, /\(.*\+.*\)/)) {
+            } else if (matchExact(contents, /\(.*\+[^+].*\)/)) {
                 var params = trimmedContents.split('+');
                 js = js.replace(contents, 'operator_addbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
-            }
-            else {
+            } else if (js.includes('for ' + contents)) {
+                let forLoopHeader = 'for ' + contents;
+                let numRepeats = contents.match(/< .*;/)[0].replaceAll('< ', '').replaceAll(';', '');
+
+                js = js.replace(forLoopHeader, 'control_repeatbr_OPEN' + numRepeats + 'br_CLOSE');
+            } else {
                 js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
             }
             console.log(js);
@@ -37,43 +37,34 @@ export default function readableToexecutableJs(js) {
         innermostBrackets = js.match(innermostBracketPattern);
     }
 
-    // var numberPattern = /\d+/g;
+    var innermostCurlBracketPattern = /\{[^\{\}]*\}/g;
 
-    // var numberBlocks = js.match(numberPattern);
+    var innermostCurlBrackets = js.match(innermostCurlBracketPattern);
 
-    // // two loops are required to prevent replacing the same number multiple times
-    // numberBlocks.forEach(number => {
-    //     js = js.replace(number, 'NUM_PLACEHOLDER');
-    // })
+    while (innermostCurlBrackets) {
+        innermostCurlBrackets.forEach(contents => {
+            let statementRegex = /control_repeatbr_OPEN.*br_CLOSE\s\{[^\{\}]*\}/;
+            let matchingStatement = js.match(statementRegex);
 
-    // numberBlocks.forEach(number => {
-    //     js = js.replace('NUM_PLACEHOLDER', 'math_number(' + number + ')');
-    // })
+            if (matchingStatement) {
+                let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
+                let stringToReplace = 'br_CLOSE ' + trimmedStatement;
+                let replacementString = ', function br_OPENbr_CLOSE curl_OPEN\n return ' + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + 'br_CLOSE';
+                js = js.replace(stringToReplace, replacementString);
+            }
+        })
+
+        innermostCurlBrackets = js.match(innermostCurlBracketPattern);
+    }
 
     js = js.replaceAll('br_OPEN', '(');
     js = js.replaceAll('br_CLOSE', ')');
+    js = js.replaceAll('curl_OPEN', '{');
+    js = js.replaceAll('curl_CLOSE', '}');
 
     console.log(js);
 
     return js;
-
-
-    //let endOfLine = js.search(';');
-
-
-
-    // while (js.endIndexOf('math_number') != -1) {
-    //     const functionData = parseFunction(js, js.endIndexOf('math_number'));
-
-    //     js = js.replaceBetween(js.indexOf('math_number'), functionData.endIndex, functionData.params[0]);
-    //     console.log(js);
-    // }
-    // while (js.endIndexOf('.next') != -1) {
-    //     const functionData = parseFunction(js, js.endIndexOf('.next'));
-
-    //     js = js.replaceBetween(js.indexOf('.next'), functionData.endIndex, ';' + functionData.params[0]);
-    //     console.log(js);
-    // }
 }
 
 String.prototype.endIndexOf = function (substring) {
@@ -102,6 +93,7 @@ function findEndOfStack(js, start) {
     var i = start;
 
     while (braceDepth >= 0 && i < js.length) {
+        i++;
         var char = js.charAt(i);
 
         if (char == '(' || char == '{') {
@@ -109,7 +101,7 @@ function findEndOfStack(js, start) {
         } else if (char == ')' || char == '}') {
             braceDepth--;
         }
-        i++;
+        
     }
 
     return i;

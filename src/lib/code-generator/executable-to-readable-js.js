@@ -3,8 +3,16 @@ export default function executableToReadableJs(js) {
         return '(' + params[0] + ')';
     });
 
+    js = replaceFunctionWith(js, 'math_whole_number', (params) => {
+        return '(' + params[0] + ')';
+    });
+
     js = replaceFunctionWith(js, 'operator_add', (params) => {
         return '(' + params[0] + ' + ' + params[1] + ')';
+    });
+
+    js = replaceFunctionWith(js, 'control_repeat', (params) => {
+        return 'for (let i = 0; i < ' + params[0] + '; i++) ' + params[1];
     });
 
     js = replaceFunctionWith(js, '.next', (params) => {
