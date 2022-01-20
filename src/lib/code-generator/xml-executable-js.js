@@ -34,7 +34,13 @@ function handleChildren(blockChildNodes) {
             var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
             childrenBlockCode.inputs[childNode.getAttribute('name')] = blockToExecutableCode(childBlock);
         } else if (name == 'field') {
-            childrenBlockCode.inputs[childNode.getAttribute('name')] = childNode.textContent;
+            var fieldValue = childNode.textContent;
+
+            if (isNaN(fieldValue)) {
+                fieldValue = '\'' + fieldValue + '\'';
+            }
+
+            childrenBlockCode.inputs[childNode.getAttribute('name')] = fieldValue;
             var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
         } else if (name == 'statement') {
             var childBlock = childNode.childNodes[childNode.childNodes.length - 1];

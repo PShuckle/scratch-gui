@@ -11,6 +11,10 @@ export default function executableToReadableJs(js) {
         return '(' + params[0] + ')';
     });
 
+    js = replaceFunctionWith(js, 'math_angle', (params) => {
+        return '(' + params[0] + ')';
+    });
+
     js = replaceFunctionWith(js, 'operator_add', (params) => {
         return '(' + params[0] + ' + ' + params[1] + ')';
     });
