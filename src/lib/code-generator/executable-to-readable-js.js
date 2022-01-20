@@ -1,4 +1,8 @@
+import VariableNameGenerator from "./variable-name-generator";
+
 export default function executableToReadableJs(js) {
+    const variableNameGenerator = new VariableNameGenerator();
+
     js = replaceFunctionWith(js, 'math_number', (params) => {
         return '(' + params[0] + ')';
     });
@@ -12,7 +16,9 @@ export default function executableToReadableJs(js) {
     });
 
     js = replaceFunctionWith(js, 'control_repeat', (params) => {
-        return 'for (let i = 0; i < ' + params[0] + '; i++) ' + params[1];
+        var varName = variableNameGenerator.generateCounterVariable();
+        return 'for (let '+ varName + ' = 0; ' + varName + ' < ' + params[0] + '; ' 
+        + varName + '++) ' + params[1];
     });
 
     js = replaceFunctionWith(js, '.next', (params) => {
