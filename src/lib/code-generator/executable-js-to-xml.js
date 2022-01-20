@@ -3,6 +3,8 @@ export default function javascriptToXml(javascript) {
     const xml = document.createElement('xml');
     xml.appendChild(topBlock);
 
+    console.log(xml);
+
     return xml;
 }
 
@@ -96,4 +98,12 @@ function control_repeat(times, substack) {
             SUBSTACK: substack
         }
     });
+}
+
+function control_forever(substack) {
+    return createBlock('control_forever', {
+        statements: {
+            SUBSTACK: substack
+        }
+    })
 }

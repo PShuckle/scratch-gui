@@ -21,6 +21,10 @@ export default function executableToReadableJs(js) {
         + varName + '++) ' + params[1];
     });
 
+    js = replaceFunctionWith(js, 'control_forever', (params) => {
+        return 'while (true) ' + params[0]; 
+    })
+
     js = replaceFunctionWith(js, '.next', (params) => {
         return ';' + params[0];
     });

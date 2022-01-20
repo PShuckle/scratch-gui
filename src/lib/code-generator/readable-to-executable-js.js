@@ -9,6 +9,8 @@ export default function readableToexecutableJs(js) {
         js = js.replaceBetween(endOfLine, endOfStack, '.next(' + childBlocks + '\r\n)');
 
         endOfLine = js.search(/;\s\s/);
+
+        console.log(js);
     }
 
     var innermostBracketPattern = /\([^\(\)]*\)/g;
@@ -28,6 +30,8 @@ export default function readableToexecutableJs(js) {
                 let numRepeats = contents.match(/< .*;/)[0].replaceAll('< ', '').replaceAll(';', '');
 
                 js = js.replace(forLoopHeader, 'control_repeatbr_OPEN' + numRepeats + 'br_CLOSE');
+            } else if (contents == '(true)') {
+                js = js.replace('while (true)', 'control_foreverbr_OPENbr_CLOSE')
             } else {
                 js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
             }
@@ -50,6 +54,16 @@ export default function readableToexecutableJs(js) {
                 let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
                 let stringToReplace = 'br_CLOSE ' + trimmedStatement;
                 let replacementString = ', function br_OPENbr_CLOSE curl_OPEN\n return ' + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + 'br_CLOSE';
+                js = js.replace(stringToReplace, replacementString);
+            }
+
+            statementRegex = /control_foreverbr_OPENbr_CLOSE\s\{[^\{\}]*\}/;
+            matchingStatement = js.match(statementRegex);
+
+            if (matchingStatement) {
+                let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
+                let stringToReplace = 'br_CLOSE ' + trimmedStatement;
+                let replacementString = 'function br_OPENbr_CLOSE curl_OPEN\n return ' + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + 'br_CLOSE';
                 js = js.replace(stringToReplace, replacementString);
             }
         })
@@ -101,7 +115,7 @@ function findEndOfStack(js, start) {
         } else if (char == ')' || char == '}') {
             braceDepth--;
         }
-        
+
     }
 
     return i;
