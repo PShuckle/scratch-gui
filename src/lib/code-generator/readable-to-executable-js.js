@@ -18,11 +18,11 @@ export default function readableToexecutableJs(js) {
     var innermostBrackets = js.match(innermostBracketPattern);
 
     const blocksWithTextDropdowns = [
-        'motion_goto_menu', 'motion_glideto_menu', 'motion_pointtowards_menu', 
+        'motion_goto_menu', 'motion_glideto_menu', 'motion_pointtowards_menu',
         'motion_setrotationstyle', 'looks_costume', 'looks_backdrops',
-        'looks_changeeffectby', 'looks_seteffectto', 'looks_gotofrontback', 
-        'looks_goforwardbackwardlayers', 'looks_costumenumbername', 
-        'looks_backdropnumbername', 'sound_sounds_menu', 'sensing_touchingobjectmenu', 
+        'looks_changeeffectby', 'looks_seteffectto', 'looks_gotofrontback',
+        'looks_goforwardbackwardlayers', 'looks_costumenumbername',
+        'looks_backdropnumbername', 'sound_sounds_menu', 'sensing_touchingobjectmenu',
         'colour_picker', 'sensing_distancetomenu', 'sensing_keyoptions', 'sensing_setdragmode',
         'sensing_of', 'sensing_of_object_menu', 'sensing_current', 'operator_mathop', 'control_stop'
     ];
@@ -71,12 +71,25 @@ export default function readableToexecutableJs(js) {
                 js = js.replace(forLoopHeader, 'control_repeatbr_OPEN' + numRepeats + 'br_CLOSE');
             } else if (contents == '(true)') {
                 js = js.replace('while (true)', 'control_foreverbr_OPENbr_CLOSE')
+            } else if (js.includes('while ' + contents)) {
+                console.log(contents);
+                let whileLoopHeader = 'while ' + contents;
+                if (contents.includes('(operator_not')) {
+                    let condition = contents.substring(0, contents.length - 1).replace('(operator_not', '');
+
+                    js = js.replace(whileLoopHeader, 'control_repeat_untilbr_OPEN' + condition + 'br_CLOSE');
+                }
+                else {
+                    let condition = contents.substring(1, contents.length - 1).replace('(operator_not', '');
+                    js = js.replace(whileLoopHeader, 'control_whilebr_OPEN' + condition + 'br_CLOSE');
+                }
+
             } else if (matchExact(contents, /\('.*'\)/)) {
                 var parentFunctionHeaderPattern = new RegExp('(\\(|\\n|,)[^,\\n(]*\\(' + trimmedContents + '\\)');
-                
+
                 var parentFunctionHeader = js.match(parentFunctionHeaderPattern)[0];
                 var parentFunctionName = parentFunctionHeader.match(/(\(|\s)[^,\s(]*\(/)[0];
-                parentFunctionName = parentFunctionName.substring(1, parentFunctionName.length-1);
+                parentFunctionName = parentFunctionName.substring(1, parentFunctionName.length - 1);
 
                 var textInDropdownBlock = false;
                 if (blocksWithTextDropdowns.includes(parentFunctionName)) {
@@ -85,8 +98,7 @@ export default function readableToexecutableJs(js) {
                 }
                 if (!textInDropdownBlock) {
                     js = js.replace(contents, 'textbr_OPEN' + trimmedContents + 'br_CLOSE');
-                }
-                else {
+                } else {
                     js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
                 }
             } else {
@@ -104,18 +116,25 @@ export default function readableToexecutableJs(js) {
 
     while (innermostCurlBrackets) {
         innermostCurlBrackets.forEach(contents => {
-            let statementRegex = /control_repeatbr_OPEN.*br_CLOSE\s\{[^\{\}]*\}/;
+            const regexps = [
+                /control_repeatbr_OPEN.*br_CLOSE\s\{[^\{\}]*\}/,
+                /control_repeat_untilbr_OPEN.*br_CLOSE\s\{[^\{\}]*\}/,
+                /control_whilebr_OPEN.*br_CLOSE\s\{[^\{\}]*\}/
+            ];
+
+            regexps.forEach(regexp => {
+                let matchingStatement = js.match(regexp);
+
+                if (matchingStatement) {
+                    let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
+                    let stringToReplace = 'br_CLOSE ' + trimmedStatement;
+                    let replacementString = ', function br_OPENbr_CLOSE curl_OPEN\n return ' + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + 'br_CLOSE';
+                    js = js.replace(stringToReplace, replacementString);
+                }
+            })
+
+            let statementRegex = /control_foreverbr_OPENbr_CLOSE\s\{[^\{\}]*\}/;
             let matchingStatement = js.match(statementRegex);
-
-            if (matchingStatement) {
-                let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
-                let stringToReplace = 'br_CLOSE ' + trimmedStatement;
-                let replacementString = ', function br_OPENbr_CLOSE curl_OPEN\n return ' + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + 'br_CLOSE';
-                js = js.replace(stringToReplace, replacementString);
-            }
-
-            statementRegex = /control_foreverbr_OPENbr_CLOSE\s\{[^\{\}]*\}/;
-            matchingStatement = js.match(statementRegex);
 
             if (matchingStatement) {
                 let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];

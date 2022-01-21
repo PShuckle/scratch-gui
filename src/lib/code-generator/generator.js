@@ -17,6 +17,7 @@ class Generator {
 
     javascriptToDom(javascript) {
         const executableJs = readableToexecutable(javascript);
+        console.log(executableJs);
         const xml = javascriptToXml(executableJs);
         this.ScratchBlocks.Xml.clearWorkspaceAndLoadFromXml(xml, this.workspace);
     }

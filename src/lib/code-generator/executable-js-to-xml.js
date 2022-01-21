@@ -8,7 +8,7 @@ export default function javascriptToXml(javascript) {
         }
         return this;
     }
-    
+
     const topBlock = eval(javascript);
     const xml = document.createElement('xml');
     xml.appendChild(topBlock);
@@ -562,6 +562,17 @@ function control_wait_until(condition) {
     return createBlock('control_if', {
         values: {
             CONDITION: condition
+        }
+    })
+}
+
+function control_repeat_until(condition, substack) {
+    return createBlock('control_repeat_until', {
+        values: {
+            CONDITION: condition
+        },
+        statements: {
+            SUBSTACK: substack
         }
     })
 }
