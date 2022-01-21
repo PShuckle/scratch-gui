@@ -22,7 +22,9 @@ export default function readableToexecutableJs(js) {
         'motion_setrotationstyle', 'looks_costume', 'looks_backdrops',
         'looks_changeeffectby', 'looks_seteffectto', 'looks_gotofrontback', 
         'looks_goforwardbackwardlayers', 'looks_costumenumbername', 
-        'looks_backdropnumbername', 'sound_sounds_menu'
+        'looks_backdropnumbername', 'sound_sounds_menu', 'sensing_touchingobjectmenu', 
+        'colour_picker', 'sensing_distancetomenu', 'sensing_keyoptions', 'sensing_setdragmode',
+        'sensing_of', 'sensing_of_object_menu', 'sensing_current', 'operator_mathop'
     ];
 
     while (innermostBrackets) {

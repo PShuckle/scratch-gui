@@ -38,7 +38,9 @@ function createBlock(type, inputs, shadow) {
             const value = document.createElement('value');
             block.appendChild(value);
             value.setAttribute('name', valueName);
-            value.appendChild(values[valueName]);
+            if (values[valueName]) {
+                value.appendChild(values[valueName]);
+            }
         });
     }
 
@@ -506,15 +508,6 @@ function sound_volume() {
     })
 }
 
-function operator_add(num1, num2) {
-    return createBlock('operator_add', {
-        values: {
-            NUM1: num1,
-            NUM2: num2
-        }
-    })
-}
-
 function control_repeat(times, substack) {
     return createBlock('control_repeat', {
         values: {
@@ -530,6 +523,305 @@ function control_forever(substack) {
     return createBlock('control_forever', {
         statements: {
             SUBSTACK: substack
+        }
+    })
+}
+
+function sensing_touchingobject(touchingobjectmenu) {
+    return createBlock('sensing_touchingobject', {
+        values: {
+            TOUCHINGOBJECTMENU: touchingobjectmenu
+        }
+    })
+}
+
+function sensing_touchingobjectmenu(touchingobjectmenu) {
+    return createBlock('sensing_touchingobjectmenu', {
+        fields: {
+            TOUCHINGOBJECTMENU: touchingobjectmenu
+        }
+    }, true)
+}
+
+function sensing_touchingcolor(color) {
+    return createBlock('sensing_touchingcolor', {
+        values: {
+            COLOR: color
+        }
+    })
+}
+
+function sensing_coloristouchingcolor(color, color2) {
+    return createBlock('sensing_coloristouchingcolor', {
+        values: {
+            COLOR: color,
+            COLOR2: color2
+        }
+    })
+}
+
+function colour_picker(colour) {
+    return createBlock('colour_picker', {
+        fields: {
+            COLOUR: colour
+        }
+    }, true)
+}
+
+function sensing_distanceto(distancetomenu) {
+    return createBlock('sensing_distanceto', {
+        values: {
+            DISTANCETOMENU: distancetomenu
+        }
+    })
+}
+
+function sensing_distancetomenu(distancetomenu) {
+    return createBlock('sensing_distancetomenu', {
+        fields: {
+            DISTANCETOMENU: distancetomenu
+        }
+    }, true)
+}
+
+function sensing_askandwait(question) {
+    return createBlock('sensing_askandwait', {
+        values: {
+            QUESTION: question
+        }
+    })
+}
+
+function sensing_answer() {
+    return createBlock('sensing_answer', {
+        
+    })
+}
+
+function sensing_keypressed(key_option) {
+    return createBlock('sensing_keypressed', {
+        values: {
+            KEY_OPTION: key_option
+        }
+    })
+}
+
+function sensing_keyoptions(key_option) {
+    return createBlock('sensing_keyoptions', {
+        fields: {
+            KEY_OPTION: key_option
+        }
+    })
+}
+
+function sensing_mousedown() {
+    return createBlock('sensing_mousedown', {
+
+    })
+}
+
+function sensing_mousex() {
+    return createBlock('sensing_mousex', {
+        
+    })
+}
+
+function sensing_mousey() {
+    return createBlock('sensing_mousey', {
+        
+    })
+}
+
+function sensing_setdragmode(drag_mode) {
+    return createBlock('sensing_setdragmode', {
+        fields: {
+            DRAG_MODE: drag_mode
+        }
+    })
+}
+
+function sensing_loudness() {
+    return createBlock('sensing_loudness', {
+        
+    })
+}
+
+function sensing_timer() {
+    return createBlock('sensing_timer', {
+        
+    })
+}
+
+function sensing_resettimer() {
+    return createBlock('sensing_resettimer', {
+        
+    })
+}
+
+function sensing_of(property, object) {
+    return createBlock('sensing_of', {
+        values: {
+            OBJECT: object
+        },
+        fields: {
+            PROPERTY: property
+        }
+    })
+}
+
+function sensing_of_object_menu(object) {
+    return createBlock('sensing_of_object_menu', {
+        fields: {
+            OBJECT: object
+        }
+    })
+}
+
+function sensing_current(currentmenu) {
+    return createBlock('sensing_current', {
+        fields: {
+            CURRENTMENU: currentmenu
+        }
+    })
+}
+
+function sensing_dayssince2000() {
+    return createBlock('sensing_dayssince2000', {
+        
+    })
+}
+
+function sensing_username() {
+    return createBlock('sensing_username', {
+        
+    })
+}
+
+function operator_add(num1, num2) {
+    return arithmeticOperator('operator_add', num1, num2);
+}
+
+function operator_subtract(num1, num2) {
+    return arithmeticOperator('operator_subtract', num1, num2);
+}
+
+function operator_multiply(num1, num2) {
+    return arithmeticOperator('operator_multiply', num1, num2);
+}
+
+function operator_divide(num1, num2) {
+    return arithmeticOperator('operator_divide', num1, num2);
+}
+
+function arithmeticOperator(type, num1, num2) {
+    return createBlock(type, {
+        values: {
+            NUM1: num1,
+            NUM2: num2
+        }
+    })
+}
+
+function operator_random(from, to) {
+    return createBlock('operator_random', {
+        values: {
+            FROM: from,
+            TO: to
+        }
+    })
+}
+
+function operator_gt(operand1, operand2) {
+    return logicalOperator('operator_gt', operand1, operand2);
+}
+
+function operator_lt(operand1, operand2) {
+    return logicalOperator('operator_lt', operand1, operand2);
+}
+
+function operator_equals(operand1, operand2) {
+    return logicalOperator('operator_equals', operand1, operand2);
+}
+
+function operator_and(operand1, operand2) {
+    return logicalOperator('operator_and', operand1, operand2);
+}
+
+function operator_or(operand1, operand2) {
+    return logicalOperator('operator_or', operand1, operand2);
+}
+
+function logicalOperator(type, operand1, operand2) {
+    return createBlock(type, {
+        values: {
+            OPERAND1: operand1,
+            OPERAND2: operand2
+        }
+    })
+}
+
+function operator_not(operand) {
+    return createBlock('operator_not', {
+        values: {
+            OPERAND: operand
+        }
+    })
+}
+
+function operator_join(string1, string2) {
+    return createBlock('operator_join', {
+        values: {
+            STRING1: string1,
+            STRING2: string2
+        }
+    })
+}
+
+function operator_letter_of(letter, string) {
+    return createBlock('operator_letter_of', {
+        values: {
+            LETTER: letter,
+            STRING: string
+        }
+    })
+}
+
+function operator_length(string) {
+    return createBlock('operator_length', {
+        values: {
+            STRING: string
+        }
+    })
+}
+
+function operator_contains(string1, string2) {
+    return createBlock('operator_contains', {
+        values: {
+            STRING1: string1,
+            STRING2: string2
+        }
+    })
+}
+
+function operator_mod(num1, num2) {
+    return arithmeticOperator('operator_mod', num1, num2);
+}
+
+function operator_round(num) {
+    return createBlock('operator_round', {
+        values: {
+            NUM: num
+        }
+    })
+}
+
+function operator_mathop(operator, num) {
+    return createBlock('operator_mathop', {
+        values: {
+            NUM: num
+        },
+        fields: {
+            OPERATOR: operator
         }
     })
 }
