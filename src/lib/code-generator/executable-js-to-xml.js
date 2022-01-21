@@ -72,6 +72,22 @@ function math_number(num) {
     }, true);
 }
 
+function math_integer(num) {
+    return createBlock('math_integer', {
+        fields: {
+            NUM: num
+        }
+    }, true);
+}
+
+function text(text) {
+    return createBlock('text', {
+        fields: {
+            TEXT: text
+        }
+    }, true);
+}
+
 function motion_movesteps(steps) {
     return createBlock('motion_movesteps', {
         values: {
@@ -81,14 +97,14 @@ function motion_movesteps(steps) {
 }
 
 function motion_turnright(degrees) {
-    return motion_turn('motion_turnright', degrees);
+    return turn('motion_turnright', degrees);
 }
 
 function motion_turnleft(degrees) {
-    return motion_turn('motion_turnleft', degrees);
+    return turn('motion_turnleft', degrees);
 }
 
-function motion_turn(type, degrees) {
+function turn(type, degrees) {
     return createBlock(type, {
         values: {
             DEGREES: degrees
@@ -232,6 +248,180 @@ function motion_yposition() {
 
 function motion_direction() {
     return createBlock('motion_direction', {
+        
+    })
+}
+
+function looks_sayforsecs(message, secs) {
+    return displayMessageForSecs('looks_sayforsecs', message, secs);
+}
+
+function looks_say(message) {
+    return displayMessage('looks_say', message);
+}
+
+function looks_thinkforsecs(message, secs) {
+    return displayMessageForSecs('looks_thinkforsecs', message, secs);
+}
+
+function looks_think(message) {
+    return displayMessage('looks_think', message);
+}
+
+function displayMessageForSecs(type, message, secs) {
+    return createBlock(type, {
+        values: {
+            MESSAGE: message,
+            SECS: secs
+        }
+    })
+}
+
+function displayMessage(type, message) {
+    return createBlock(type, {
+        values: {
+            MESSAGE: message,
+        }
+    })
+}
+
+function looks_switchcostumeto(costume) {
+    return createBlock('looks_switchcostumeto', {
+        values: {
+            COSTUME: costume
+        }
+    })
+}
+
+function looks_costume(costume) {
+    return createBlock('looks_costume', {
+        fields: {
+            COSTUME: costume
+        }
+    }, true)
+}
+
+function looks_nextcostume() {
+    return createBlock('looks_nextcostume', {
+        
+    })
+}
+
+function looks_switchbackdropto(backdrop) {
+    return createBlock('looks_switchbackdropto', {
+        values: {
+            BACKDROP: backdrop
+        }
+    })
+}
+
+function looks_backdrops(backdrop) {
+    return createBlock('looks_backdrops', {
+        fields: {
+            BACKDROP: backdrop
+        }
+    }, true)
+}
+
+function looks_nextbackdrop() {
+    return createBlock('looks_nextcostume', {
+        
+    })
+}
+
+function looks_changesizeby(change) {
+    return createBlock('looks_changesizeby', {
+        values: {
+            CHANGE: change
+        }
+    })
+}
+
+function looks_setsizeto(size) {
+    return createBlock('looks_setsizeto', {
+        values: {
+            SIZE: size
+        }
+    })
+}
+
+function looks_changeeffectby(effect, change) {
+    return createBlock('looks_changeeffectby', {
+        values: {
+            CHANGE: change
+        },
+        fields: {
+            EFFECT: effect
+        }
+    })
+}
+
+function looks_seteffectto(effect, value) {
+    return createBlock('looks_seteffectto', {
+        values: {
+            VALUE: value
+        },
+        fields: {
+            EFFECT: effect
+        }
+    })
+}
+
+function looks_cleargraphiceffects() {
+    return createBlock('looks_cleargraphiceffects', {
+        
+    })
+}
+
+function looks_show() {
+    return createBlock('looks_show', {
+        
+    })
+}
+
+function looks_hide() {
+    return createBlock('looks_hide', {
+        
+    })
+}
+
+function looks_gotofrontback(front_back) {
+    return createBlock('looks_gotofrontback', {
+        fields: {
+            FRONT_BACK: front_back
+        }
+    })
+}
+
+function looks_goforwardbackwardlayers(forward_backward, num) {
+    return createBlock('looks_goforwardbackwardlayers', {
+        values: {
+            NUM: num
+        },
+        fields: {
+            FORWARD_BACKWARD: forward_backward
+        }
+    })
+}
+
+function looks_costumenumbername(number_name) {
+    return numberNameBlock('looks_costumenumbername', number_name);
+}
+
+function looks_backdropnumbername(number_name) {
+    return numberNameBlock('looks_backdropnumbername', number_name);
+}
+
+function numberNameBlock(type, number_name) {
+    return createBlock(type, {
+        fields: {
+            NUMBER_NAME: number_name
+        }
+    })
+}
+
+function looks_size() {
+    return createBlock('looks_size', {
         
     })
 }

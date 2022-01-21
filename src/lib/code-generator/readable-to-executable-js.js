@@ -17,6 +17,14 @@ export default function readableToexecutableJs(js) {
 
     var innermostBrackets = js.match(innermostBracketPattern);
 
+    const blocksWithTextDropdowns = [
+        'motion_goto_menu', 'motion_glideto_menu', 'motion_pointtowards_menu', 
+        'motion_setrotationstyle', 'looks_costume', 'looks_backdrops',
+        'looks_changeeffectby', 'looks_seteffectto', 'looks_gotofrontback', 
+        'looks_goforwardbackwardlayers', 'looks_costumenumbername', 
+        'looks_backdropnumbername'
+    ];
+
     while (innermostBrackets) {
         innermostBrackets.forEach(contents => {
             var trimmedContents = contents.substring(1, contents.length - 1);
@@ -32,6 +40,24 @@ export default function readableToexecutableJs(js) {
                 js = js.replace(forLoopHeader, 'control_repeatbr_OPEN' + numRepeats + 'br_CLOSE');
             } else if (contents == '(true)') {
                 js = js.replace('while (true)', 'control_foreverbr_OPENbr_CLOSE')
+            } else if (matchExact(contents, /\('.*'\)/)) {
+                var parentFunctionHeaderPattern = new RegExp('(\\(|\\n|,)[^,\\n(]*\\(' + trimmedContents + '\\)');
+                
+                var parentFunctionHeader = js.match(parentFunctionHeaderPattern)[0];
+                var parentFunctionName = parentFunctionHeader.match(/(\(|\s)[^,\s(]*\(/)[0];
+                parentFunctionName = parentFunctionName.substring(1, parentFunctionName.length-1);
+
+                var textInDropdownBlock = false;
+                if (blocksWithTextDropdowns.includes(parentFunctionName)) {
+                    textInDropdownBlock = true;
+
+                }
+                if (!textInDropdownBlock) {
+                    js = js.replace(contents, 'textbr_OPEN' + trimmedContents + 'br_CLOSE');
+                }
+                else {
+                    js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
+                }
             } else {
                 js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
             }

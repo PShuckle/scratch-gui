@@ -15,6 +15,14 @@ export default function executableToReadableJs(js) {
         return '(' + params[0] + ')';
     });
 
+    js = replaceFunctionWith(js, 'math_integer', (params) => {
+        return '(' + params[0] + ')';
+    });
+
+    js = replaceFunctionWith(js, 'text', (params) => {
+        return '(' + params[0] + ')';
+    });
+
     js = replaceFunctionWith(js, 'operator_add', (params) => {
         return '(' + params[0] + ' + ' + params[1] + ')';
     });
