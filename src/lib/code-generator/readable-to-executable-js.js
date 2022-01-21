@@ -24,7 +24,7 @@ export default function readableToexecutableJs(js) {
         'looks_goforwardbackwardlayers', 'looks_costumenumbername', 
         'looks_backdropnumbername', 'sound_sounds_menu', 'sensing_touchingobjectmenu', 
         'colour_picker', 'sensing_distancetomenu', 'sensing_keyoptions', 'sensing_setdragmode',
-        'sensing_of', 'sensing_of_object_menu', 'sensing_current', 'operator_mathop'
+        'sensing_of', 'sensing_of_object_menu', 'sensing_current', 'operator_mathop', 'control_stop'
     ];
 
     while (innermostBrackets) {

@@ -1,59 +1,59 @@
 import VariableNameGenerator from "./variable-name-generator";
 
 export default function executableToReadableJs(js) {
+    String.prototype.endIndexOf = function (substring) {
+        var startIndex = this.indexOf(substring);
+        var endIndex = startIndex == -1 ? -1 : startIndex + substring.length;
+        return endIndex;
+    }
+    
+    String.prototype.replaceBetween = function (start, end, replacementSubstring) {
+        return this.substring(0, start) + replacementSubstring + this.substring(end);
+    };
+
     const variableNameGenerator = new VariableNameGenerator();
 
-    js = replaceFunctionWith(js, 'math_number', (params) => {
+    js = replaceFunctionWith(js, 'math_number(', (params) => {
         return '(' + params[0] + ')';
     });
 
-    js = replaceFunctionWith(js, 'math_whole_number', (params) => {
+    js = replaceFunctionWith(js, 'math_whole_number(', (params) => {
         return '(' + params[0] + ')';
     });
 
-    js = replaceFunctionWith(js, 'math_angle', (params) => {
+    js = replaceFunctionWith(js, 'math_angle(', (params) => {
         return '(' + params[0] + ')';
     });
 
-    js = replaceFunctionWith(js, 'math_integer', (params) => {
+    js = replaceFunctionWith(js, 'math_integer(', (params) => {
         return '(' + params[0] + ')';
     });
 
-    js = replaceFunctionWith(js, 'text', (params) => {
+    js = replaceFunctionWith(js, 'text(', (params) => {
         return '(' + params[0] + ')';
     });
 
-    js = replaceFunctionWith(js, 'operator_add', (params) => {
+    js = replaceFunctionWith(js, 'operator_add(', (params) => {
         return '(' + params[0] + ' + ' + params[1] + ')';
     });
 
-    js = replaceFunctionWith(js, 'control_repeat', (params) => {
+    js = replaceFunctionWith(js, 'control_repeat(', (params) => {
         var varName = variableNameGenerator.generateCounterVariable();
-        return 'for (let '+ varName + ' = 0; ' + varName + ' < ' + params[0] + '; ' 
-        + varName + '++) ' + params[1];
+        return 'for (let ' + varName + ' = 0; ' + varName + ' < ' + params[0] + '; ' +
+            varName + '++) ' + params[1];
     });
 
-    js = replaceFunctionWith(js, 'control_forever', (params) => {
-        return 'while (true) ' + params[0]; 
+    js = replaceFunctionWith(js, 'control_forever(', (params) => {
+        return 'while (true) ' + params[0];
     })
 
-    js = replaceFunctionWith(js, '.next', (params) => {
+    js = replaceFunctionWith(js, '.next(', (params) => {
         return ';' + params[0];
     });
 
     js = js.replaceAll(', )', ')');
     console.log(js);
 }
-
-String.prototype.endIndexOf = function (substring) {
-    var startIndex = this.indexOf(substring);
-    var endIndex = startIndex == -1 ? -1 : startIndex + substring.length + 1;
-    return endIndex;
-}
-
-String.prototype.replaceBetween = function (start, end, replacementSubstring) {
-    return this.substring(0, start) + replacementSubstring + this.substring(end);
-};
 
 function replaceFunctionWith(js, func, replacementStringBuilder) {
     while (js.endIndexOf(func) != -1) {
@@ -76,6 +76,8 @@ function parseFunction(js, start) {
 
     while (braceDepth >= 0) {
         var char = js.charAt(i);
+
+        console.log(char);
 
         if (char == '(') {
             braceDepth++;

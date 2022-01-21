@@ -1,4 +1,14 @@
 export default function javascriptToXml(javascript) {
+    Element.prototype.next = function (nextBlock) {
+        if (nextBlock) {
+            const next = document.createElement('next');
+            this.appendChild(next);
+            next.appendChild(nextBlock);
+            return this;
+        }
+        return this;
+    }
+    
     const topBlock = eval(javascript);
     const xml = document.createElement('xml');
     xml.appendChild(topBlock);
@@ -6,16 +16,6 @@ export default function javascriptToXml(javascript) {
     console.log(xml);
 
     return xml;
-}
-
-Element.prototype.next = function (nextBlock) {
-    if (nextBlock) {
-        const next = document.createElement('next');
-        this.appendChild(next);
-        next.appendChild(nextBlock);
-        return this;
-    }
-    return this;
 }
 
 function createBlock(type, inputs, shadow) {
@@ -508,6 +508,14 @@ function sound_volume() {
     })
 }
 
+function control_wait(duration) {
+    return createBlock('control_wait', {
+        values: {
+            DURATION: duration
+        }
+    })
+}
+
 function control_repeat(times, substack) {
     return createBlock('control_repeat', {
         values: {
@@ -524,6 +532,70 @@ function control_forever(substack) {
         statements: {
             SUBSTACK: substack
         }
+    })
+}
+
+function control_if(condition, substack) {
+    return createBlock('control_if', {
+        values: {
+            CONDITION: condition
+        },
+        statements: {
+            SUBSTACK: substack
+        }
+    })
+}
+
+function control_if_else(condition, substack, substack2) {
+    return createBlock('control_if_else', {
+        values: {
+            CONDITION: condition
+        },
+        statements: {
+            SUBSTACK: substack,
+            SUBSTACK2: substack2
+        }
+    })
+}
+
+function control_wait_until(condition) {
+    return createBlock('control_if', {
+        values: {
+            CONDITION: condition
+        }
+    })
+}
+
+function control_while(condition, substack) {
+    return createBlock('control_while', {
+        values: {
+            CONDITION: condition
+        },
+        statements: {
+            SUBSTACK: substack
+        }
+    })
+}
+
+function control_stop(stop_option) {
+    return createBlock('control_stop', {
+        fields: {
+            STOP_OPTION: stop_option
+        }
+    })
+}
+
+function control_create_clone_of(clone_option) {
+    return createBlock('control_create_clone_of', {
+        values: {
+            CLONE_OPTION: clone_option
+        }
+    })
+}
+
+function control_delete_this_clone() {
+    return createBlock('control_delete_this_clone', {
+
     })
 }
 
