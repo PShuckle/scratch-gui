@@ -559,7 +559,7 @@ function control_if_else(condition, substack, substack2) {
 }
 
 function control_wait_until(condition) {
-    return createBlock('control_if', {
+    return createBlock('control_wait_until', {
         values: {
             CONDITION: condition
         }
@@ -602,6 +602,14 @@ function control_create_clone_of(clone_option) {
             CLONE_OPTION: clone_option
         }
     })
+}
+
+function control_create_clone_of_menu(clone_option) {
+    return createBlock('control_create_clone_of_menu', {
+        fields: {
+            CLONE_OPTION: clone_option
+        }
+    }, true)
 }
 
 function control_delete_this_clone() {

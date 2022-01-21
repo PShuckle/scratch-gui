@@ -56,6 +56,14 @@ export default function executableToReadableJs(js) {
         return 'while (true) ' + params[0];
     });
 
+    js = replaceFunctionWith(js, 'control_if(', (params) => {
+        return 'if (' + params[0] + ') ' + params[1];
+    });
+
+    js = replaceFunctionWith(js, 'control_if_else(', (params) => {
+        return 'if (' + params[0] + ') ' + params[1] + ' else ' + params[2];
+    });
+
     js = replaceFunctionWith(js, 'control_repeat_until(', (params) => {
         return 'while ((!' + params[0] + ')) ' + params[1];
     });
