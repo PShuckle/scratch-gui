@@ -35,6 +35,35 @@ export default function readableToexecutableJs(js) {
             } else if (matchExact(contents, /\(.*\+[^+].*\)/)) {
                 var params = trimmedContents.split('+');
                 js = js.replace(contents, 'operator_addbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*\-[^-].*\)/)) {
+                var params = trimmedContents.split('-');
+                js = js.replace(contents, 'operator_subtractbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*\*.*\)/)) {
+                var params = trimmedContents.split('*');
+                js = js.replace(contents, 'operator_multiplybr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*\/.*\)/)) {
+                var params = trimmedContents.split('/');
+                js = js.replace(contents, 'operator_dividebr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*>.*\)/)) {
+                var params = trimmedContents.split('>');
+                js = js.replace(contents, 'operator_gtbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*<.*\)/)) {
+                var params = trimmedContents.split('<');
+                js = js.replace(contents, 'operator_ltbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*==.*\)/)) {
+                var params = trimmedContents.split('==');
+                js = js.replace(contents, 'operator_equalsbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*&&.*\)/)) {
+                var params = trimmedContents.split('&&');
+                js = js.replace(contents, 'operator_andbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*\|\|.*\)/)) {
+                var params = trimmedContents.split('||');
+                js = js.replace(contents, 'operator_orbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(.*%.*\)/)) {
+                var params = trimmedContents.split('%');
+                js = js.replace(contents, 'operator_modbr_OPEN' + params[0] + ', ' + params[1] + 'br_CLOSE');
+            } else if (matchExact(contents, /\(\!.*\)/)) {
+                js = js.replace(contents, 'operator_notbr_OPEN' + trimmedContents.substring(1) + 'br_CLOSE');
             } else if (js.includes('for ' + contents)) {
                 let forLoopHeader = 'for ' + contents;
                 let numRepeats = contents.match(/< .*;/)[0].replaceAll('< ', '').replaceAll(';', '');

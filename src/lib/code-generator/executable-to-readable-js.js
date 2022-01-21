@@ -13,28 +13,37 @@ export default function executableToReadableJs(js) {
 
     const variableNameGenerator = new VariableNameGenerator();
 
-    js = replaceFunctionWith(js, 'math_number(', (params) => {
-        return '(' + params[0] + ')';
+    const basicInputBlocks = [
+        'math_number(', 'math_whole_number(', 'math_angle(', 'math_integer(', 'text('
+    ];
+
+    basicInputBlocks.forEach(block => {
+        js = replaceFunctionWith(js, block, (params) => {
+            return '(' + params[0] + ')';
+        });
+    })
+
+    const twoParamOperators = {
+        operator_add: ' + ',
+        operator_subtract: ' - ',
+        operator_multiply: ' * ',
+        operator_divide: ' / ',
+        operator_gt: ' > ',
+        operator_lt: ' < ',
+        operator_equals: ' == ',
+        operator_and: ' && ',
+        operator_or: ' || ',
+        operator_mod: ' % '
+    }
+
+    Object.keys(twoParamOperators).forEach(operator => {
+        js = replaceFunctionWith(js, operator + '(', (params) => {
+            return '(' + params[0] + twoParamOperators[operator] + params[1] + ')';
+        });
     });
 
-    js = replaceFunctionWith(js, 'math_whole_number(', (params) => {
-        return '(' + params[0] + ')';
-    });
-
-    js = replaceFunctionWith(js, 'math_angle(', (params) => {
-        return '(' + params[0] + ')';
-    });
-
-    js = replaceFunctionWith(js, 'math_integer(', (params) => {
-        return '(' + params[0] + ')';
-    });
-
-    js = replaceFunctionWith(js, 'text(', (params) => {
-        return '(' + params[0] + ')';
-    });
-
-    js = replaceFunctionWith(js, 'operator_add(', (params) => {
-        return '(' + params[0] + ' + ' + params[1] + ')';
+    js = replaceFunctionWith(js, 'operator_not(', (params) => {
+        return '(!' + params[0] + ')';
     });
 
     js = replaceFunctionWith(js, 'control_repeat(', (params) => {
@@ -76,8 +85,6 @@ function parseFunction(js, start) {
 
     while (braceDepth >= 0) {
         var char = js.charAt(i);
-
-        console.log(char);
 
         if (char == '(') {
             braceDepth++;
