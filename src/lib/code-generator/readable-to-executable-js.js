@@ -22,13 +22,13 @@ export default function readableToexecutableJs(js) {
         'motion_setrotationstyle', 'looks_costume', 'looks_backdrops',
         'looks_changeeffectby', 'looks_seteffectto', 'looks_gotofrontback', 
         'looks_goforwardbackwardlayers', 'looks_costumenumbername', 
-        'looks_backdropnumbername'
+        'looks_backdropnumbername', 'sound_sounds_menu'
     ];
 
     while (innermostBrackets) {
         innermostBrackets.forEach(contents => {
             var trimmedContents = contents.substring(1, contents.length - 1);
-            if (matchExact(contents, /\(\d+\)/)) {
+            if (matchExact(contents, /\(-?\d+\)/)) {
                 js = js.replace(contents, 'math_numberbr_OPEN' + trimmedContents + 'br_CLOSE');
             } else if (matchExact(contents, /\(.*\+[^+].*\)/)) {
                 var params = trimmedContents.split('+');

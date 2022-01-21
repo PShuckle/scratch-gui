@@ -426,6 +426,86 @@ function looks_size() {
     })
 }
 
+function sound_playuntildone(sound_menu) {
+    return createBlock('sound_playuntildone', {
+        values: {
+            SOUND_MENU: sound_menu
+        }
+    })
+}
+
+function sound_play(sound_menu) {
+    return createBlock('sound_play', {
+        values: {
+            SOUND_MENU: sound_menu
+        }
+    })
+}
+
+function sound_sounds_menu(sound_menu) {
+    return createBlock('sound_sounds_menu', {
+        fields: {
+            SOUND_MENU: sound_menu
+        }
+    }, true)
+}
+
+function sound_stopallsounds() {
+    return createBlock('sound_stopallsounds', {
+        
+    })
+}
+
+function sound_changeeffectby(effect, value) {
+    return createBlock('sound_changeeffectby', {
+        values: {
+            VALUE: value
+        },
+        fields: {
+            EFFECT: effect
+        }
+    })
+}
+
+function sound_seteffectto(effect, value) {
+    return createBlock('sound_seteffectto', {
+        values: {
+            VALUE: value
+        },
+        fields: {
+            EFFECT: effect
+        }
+    })
+}
+
+function sound_cleareffects() {
+    return createBlock('sound_cleareffects', {
+        
+    })
+}
+
+function sound_changevolumeby(volume) {
+    return createBlock('sound_changevolumeby', {
+        values: {
+            VOLUME: volume
+        }
+    })
+}
+
+function sound_setvolumeto(volume) {
+    return createBlock('sound_setvolumeto', {
+        values: {
+            VOLUME: volume
+        }
+    })
+}
+
+function sound_volume() {
+    return createBlock('sound_volume', {
+        
+    })
+}
+
 function operator_add(num1, num2) {
     return createBlock('operator_add', {
         values: {
