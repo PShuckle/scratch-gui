@@ -11,14 +11,30 @@ export default function javascriptToXml(javascript) {
         return this;
     }
 
-    const topBlock = eval(javascript);
-    const xml = document.createElement('xml');
+    const topBlock = eval(javascript.code);
+    var xml = document.createElement('xml');
+
+    xml = addVariables(xml, javascript.variables);
 
     topLevelBlocks.forEach(block => {
         xml.appendChild(block);
     })
 
     console.log(xml);
+
+    return xml;
+}
+
+function addVariables(xml, variables) {
+    const variablesTag = document.createElement('variables');
+    xml.appendChild(variablesTag);
+    for (let i = 0; i < variables.length; i++) {
+        var variable = document.createElement('variable');
+        variable.setAttribute('islocal', 'true');
+        variable.setAttribute('type', '');
+        variable.textContent = variables[i];
+        variablesTag.appendChild(variable);
+    }
 
     return xml;
 }

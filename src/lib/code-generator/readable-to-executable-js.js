@@ -1,4 +1,6 @@
 export default function readableToexecutableJs(js) {
+    var vars = getLocalVariables(js);
+
     js = trimJsFile(js);
     console.log(js);
 
@@ -270,7 +272,7 @@ export default function readableToexecutableJs(js) {
 
     console.log(js);
 
-    return js;
+    return {code: js, variables: vars};
 }
 
 String.prototype.endIndexOf = function (substring) {
@@ -286,6 +288,20 @@ String.prototype.replaceBetween = function (start, end, replacementSubstring) {
 function trimJsFile(js) {
     js = js.substring(js.indexOf('event_whenflagclicked'), js.lastIndexOf('}'));
     return js;
+}
+
+function getLocalVariables(js) {
+    var constructorBody = js.substring(js.indexOf('this'), js.indexOf('}'));
+    var variablesInCode = constructorBody.match(/this\..*? =/g);
+
+    var variableList = [];
+
+    variablesInCode.forEach((variable) => {
+        variable = variable.substring(variable.indexOf('.') + 1, variable.indexOf(' ='));
+        variableList.push(variable);
+    })
+
+    return variableList;
 }
 
 /**
