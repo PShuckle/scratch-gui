@@ -20,10 +20,12 @@ class Generator {
             this.vm.setEditingTarget(target.id);
 
             const xml = this.ScratchBlocks.Xml.workspaceToDom(this.workspace);
-            const js = xmlToJavascript(xml);
+            const parsedXml = xmlToJavascript(xml);
+            const js = parsedXml.code;
+            const variables = parsedXml.variables;
             const readableJs = executableToReadable(js);
             
-            files[name] = readableJs;
+            files[name] = {variables: variables, code: readableJs};
         })
 
         createJsFiles(files);

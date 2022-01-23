@@ -5,6 +5,7 @@
 export default function domToExecutableJavascript(xml) {
 
     var code = '';
+    var variables = {};
 
     var childCount = xml.childNodes.length;
 
@@ -16,9 +17,15 @@ export default function domToExecutableJavascript(xml) {
             code += blockToExecutableCode(xmlChild);
             code += ';\n\n';
         }
+        else if (name == 'variables') {
+            var variableCount = xmlChild.childNodes.length;
+            for (var j = 0; j < variableCount; j++) {
+                var variable = xmlChild.childNodes[j];
+                variables[variable.innerText] = variable.getAttribute('islocal');
+            }
+        }
     }
-    console.log(code);
-    return code;
+    return {variables: variables, code: code};
 }
 
 function handleChildren(blockChildNodes) {

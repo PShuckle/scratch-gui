@@ -28,7 +28,8 @@ export default function readableToexecutableJs(js) {
         'looks_backdropnumbername', 'sound_sounds_menu', 'sensing_touchingobjectmenu',
         'colour_picker', 'sensing_distancetomenu', 'sensing_keyoptions', 'sensing_setdragmode',
         'sensing_of', 'sensing_of_object_menu', 'sensing_current', 'operator_mathop', 'control_stop',
-        'control_create_clone_of_menu'
+        'control_create_clone_of_menu', 'data_variable', 'data_setvariableto', 'data_changevariableby',
+        'data_showvariable', 'data_hidevariable'
     ];
 
     while (innermostBrackets) {

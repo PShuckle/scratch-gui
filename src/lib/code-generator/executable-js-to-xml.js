@@ -1019,3 +1019,49 @@ function operator_mathop(operator, num) {
         }
     })
 }
+
+function data_setvariableto(variable, value) {
+    return createBlock('data_setvariableto', {
+        values: {
+            VALUE: value
+        },
+        fields: {
+            VARIABLE: variable
+        }
+    })
+}
+
+function data_changevariableby(variable, value) {
+    return createBlock('data_changevariableby', {
+        values: {
+            VALUE: value
+        },
+        fields: {
+            VARIABLE: variable
+        }
+    })
+}
+
+function data_showvariable(variable) {
+    return createBlock('data_showvariable', {
+        fields: {
+            VARIABLE: variable
+        }
+    })
+}
+
+function data_hidevariable(variable) {
+    return createBlock('data_hidevariable', {
+        fields: {
+            VARIABLE: variable
+        }
+    })
+}
+
+function data_variable(variable) {
+    return createBlock('data_variable', {
+        fields: {
+            VARIABLE: variable
+        }
+    })
+}

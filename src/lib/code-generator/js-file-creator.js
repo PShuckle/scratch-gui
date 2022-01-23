@@ -3,9 +3,24 @@ import JSZip from 'jszip';
 export default function createProject(files) {
     var zip = new JSZip();
 
+    var globalVars = [];
+
     Object.keys(files).forEach((name) => {
         var fileCode = createFileSkeleton(name);
-        var generatedJsCode = files[name];
+        var generatedJsCode = files[name].code;
+        var variables = files[name].variables;
+
+        Object.keys(variables).forEach(variable => {
+            if (variables[variable] == 'true') {
+                fileCode = fileCode.replace('super(broadcaster);',
+                    'super(broadcaster);\nthis.' + variable + ' = 0;');
+            } else {
+                if (!globalVars.includes(variable)) {
+                    globalVars.push(variable);
+                }
+                
+            }
+        })
 
         var codeSnippets = generatedJsCode.split('\n\n');
 
@@ -41,13 +56,12 @@ export default function createProject(files) {
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replaceAll('event_whenbackdropswitchesto(backdrop) {',
-                `event_whenkeypressed(backdrop) {
+                    `event_whenkeypressed(backdrop) {
                     if ((backdrop == ` + backdrop + `)) {
                         ` + trimmedSnippet + `\n}`);
             }
 
             if (snippet.includes('event_whengreaterthan')) {
-                console.log(snippet);
                 var greaterThanMatch = snippet.match(/event_whengreaterthan\((.|\s)*?\);/);
                 var params = greaterThanMatch[0];
                 var whengreaterthanmenu = params.substring(params.indexOf('(') + 1, params.indexOf(','));
@@ -55,7 +69,7 @@ export default function createProject(files) {
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replaceAll('event_whengreaterthan() {',
-                `event_whengreaterthan() {
+                    `event_whengreaterthan() {
                     if ((` + whengreaterthanmenu + ` > ` + value + `)) {
                         ` + trimmedSnippet + `\n}`);
             }
@@ -83,14 +97,13 @@ export default function createProject(files) {
 
         var fileName = name + '.js';
 
-        console.log(fileCode);
-
         zip.file(fileName, fileCode);
     });
 
     zip.file('project.js', createProjectFile(files));
     zip.file('broadcaster.js', createBroadcasterFile(files));
     zip.file('sprite.js', createSpriteFile(files));
+    zip.file('global-variable-manager.js', createGlobalVariableManager(globalVars));
 
     zip.generateAsync({
             type: "blob"
@@ -150,18 +163,21 @@ function createFileSkeleton(name) {
 }
 
 function createProjectFile(files) {
-    var code = `import Broadcaster from './broadcaster.js';\n`
+    var code = `import Broadcaster from './broadcaster.js';
+    import GlobalVariableManager from './global-variable-manager.js;
+    `
 
     Object.keys(files).forEach((name) => {
         code += 'import ' + name + ' from \'./' + name + '.js\';\n';
     });
-    
+
     code += `
     const broadcaster = new Broadcaster();
+    const varManager = new GlobalVariableManager();
     
     const targets = {\n`;
     Object.keys(files).forEach((name) => {
-        code += name + ': new ' + name + '(broadcaster),\n';
+        code += name + ': new ' + name + '(broadcaster, varManager),\n';
     });
     code += `};
     
@@ -199,12 +215,13 @@ function createBroadcasterFile(files) {
 
 function createSpriteFile() {
     return `class Sprite {
-        constructor(broadcaster) {
+        constructor(broadcaster, varManager) {
             this.x = 0;
             this.y = 0;
             this.direction = 90;
     
             this.broadcaster = broadcaster;
+            this.varManager = varManager;
         }
     
         motion_movesteps(steps) {
@@ -214,4 +231,29 @@ function createSpriteFile() {
     }
     
     export default Sprite;`
+}
+
+function createGlobalVariableManager(vars) {
+    var code = `class GlobalVariableManager {
+        constructor () {
+            this.variables = {
+                `
+    for (let i = 0; i < vars.length; i++) {
+        code += vars[i] + ': 0,\n'
+    }
+    code += `};
+        }
+    
+        addVariable(name) {
+            this.variables[name] = 0;
+        }
+    
+        setVariable(name, value) {
+            this.variables[name] = value;
+        }
+    }
+    
+    export default GlobalVariableManager;`
+
+    return code;
 }
