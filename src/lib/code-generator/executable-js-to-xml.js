@@ -508,6 +508,77 @@ function sound_volume() {
     })
 }
 
+function event_whenflagclicked() {
+    return createBlock('event_whenflagclicked', {
+        
+    })
+}
+
+function event_whenkeypressed(key_option) {
+    return createBlock('event_whenkeypressed', {
+        fields: {
+            KEY_OPTION: key_option
+        }
+    })
+}
+
+function event_whenthisspritelicked() {
+    return createBlock('event_whenthisspriteclicked', {
+        
+    })
+}
+
+function event_whenbackdropswitchesto(backdrop) {
+    return createBlock('event_whenbackdropswitchesto', {
+        fields: {
+            BACKDROP: backdrop
+        }
+    })
+}
+
+function event_whengreaterthan(whengreaterthanmenu, value) {
+    return createBlock('event_whengreaterthan', {
+        fields: {
+            WHENGREATERTHANMENU: whengreaterthanmenu
+        },
+        values: {
+            VALUE: value
+        }
+    })
+}
+
+function event_whenbradcastreceived(broadcast_option) {
+    return createBlock('event_whenbroadcastreceived', {
+        fields: {
+            BROADCAST_OPTION: broadcast_option
+        }
+    })
+}
+
+function event_broadcast(broadcast_input) {
+    return createBlock('event_broadcast', {
+        values: {
+            BROADCAST_INPUT: broadcast_input
+        }
+    })
+}
+
+function event_broadcastandwait(broadcast_input) {
+    return createBlock('event_broadcastandwait', {
+        values: {
+            BROADCAST_INPUT: broadcast_input
+        }
+    })
+}
+
+function event_broadcast_menu(broadcast_option) {
+    return createBlock('event_broadcast_menu', {
+        fields: {
+            BROADCAST_OPTION: broadcast_option
+        }
+    })
+}
+
 function control_wait(duration) {
     return createBlock('control_wait', {
         values: {
@@ -593,6 +664,12 @@ function control_stop(stop_option) {
         fields: {
             STOP_OPTION: stop_option
         }
+    })
+}
+
+function control_start_as_clone() {
+    return createBlock('control_delete_this_clone', {
+
     })
 }
 

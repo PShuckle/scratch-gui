@@ -2,17 +2,31 @@ import xmlToJavascript from './xml-executable-js';
 import javascriptToXml from './executable-js-to-xml';
 import executableToReadable from './executable-to-readable-js';
 import readableToexecutable from './readable-to-executable-js';
+import createJsFiles from './js-file-creator.js';
 
 class Generator {
-    constructor (ScratchBlocks) {
+    constructor(ScratchBlocks, vm) {
         this.ScratchBlocks = ScratchBlocks;
+        this.vm = vm;
+        console.log(this.vm);
+        console.log(this.ScratchBlocks);
         this.workspace = this.ScratchBlocks.getMainWorkspace();
     }
 
     blocksToJavascript() {
-        const xml = this.ScratchBlocks.Xml.workspaceToDom(this.workspace);
-        const js = xmlToJavascript(xml);
-        executableToReadable(js);
+        const files = {};
+        this.vm.runtime.targets.forEach((target) => {
+            var name = target.sprite.name;
+            this.vm.setEditingTarget(target.id);
+
+            const xml = this.ScratchBlocks.Xml.workspaceToDom(this.workspace);
+            const js = xmlToJavascript(xml);
+            const readableJs = executableToReadable(js);
+            
+            files[name] = readableJs;
+        })
+
+        createJsFiles(files);
     }
 
     javascriptToDom(javascript) {

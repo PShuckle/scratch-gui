@@ -143,7 +143,7 @@ class Blocks extends React.Component {
             this.setLocale();
         }
 
-        this.generator = new Generator(this.ScratchBlocks);
+        this.generator = new Generator(this.ScratchBlocks, this.props.vm);
     }
     shouldComponentUpdate(nextProps, nextState) {
         return (
