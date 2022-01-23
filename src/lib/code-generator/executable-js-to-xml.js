@@ -1,3 +1,5 @@
+let topLevelBlocks = [];
+
 export default function javascriptToXml(javascript) {
     Element.prototype.next = function (nextBlock) {
         if (nextBlock) {
@@ -11,7 +13,10 @@ export default function javascriptToXml(javascript) {
 
     const topBlock = eval(javascript);
     const xml = document.createElement('xml');
-    xml.appendChild(topBlock);
+
+    topLevelBlocks.forEach(block => {
+        xml.appendChild(block);
+    })
 
     console.log(xml);
 
@@ -509,35 +514,47 @@ function sound_volume() {
 }
 
 function event_whenflagclicked() {
-    return createBlock('event_whenflagclicked', {
+    const block = createBlock('event_whenflagclicked', {
         
     })
+
+    topLevelBlocks.push(block);
+    return block;
 }
 
 function event_whenkeypressed(key_option) {
-    return createBlock('event_whenkeypressed', {
+    const block = createBlock('event_whenkeypressed', {
         fields: {
             KEY_OPTION: key_option
         }
     })
+
+    topLevelBlocks.push(block);
+    return block;
 }
 
-function event_whenthisspritelicked() {
-    return createBlock('event_whenthisspriteclicked', {
+function event_whenthisspriteclicked() {
+    const block = createBlock('event_whenthisspriteclicked', {
         
     })
+
+    topLevelBlocks.push(block);
+    return block;
 }
 
 function event_whenbackdropswitchesto(backdrop) {
-    return createBlock('event_whenbackdropswitchesto', {
+    const block = createBlock('event_whenbackdropswitchesto', {
         fields: {
             BACKDROP: backdrop
         }
     })
+
+    topLevelBlocks.push(block);
+    return block;
 }
 
 function event_whengreaterthan(whengreaterthanmenu, value) {
-    return createBlock('event_whengreaterthan', {
+    const block = createBlock('event_whengreaterthan', {
         fields: {
             WHENGREATERTHANMENU: whengreaterthanmenu
         },
@@ -545,14 +562,20 @@ function event_whengreaterthan(whengreaterthanmenu, value) {
             VALUE: value
         }
     })
+
+    topLevelBlocks.push(block);
+    return block;
 }
 
-function event_whenbradcastreceived(broadcast_option) {
-    return createBlock('event_whenbroadcastreceived', {
+function event_whenbroadcastreceived(broadcast_option) {
+    const block = createBlock('event_whenbroadcastreceived', {
         fields: {
             BROADCAST_OPTION: broadcast_option
         }
     })
+
+    topLevelBlocks.push(block);
+    return block;
 }
 
 function event_broadcast(broadcast_input) {
@@ -668,9 +691,12 @@ function control_stop(stop_option) {
 }
 
 function control_start_as_clone() {
-    return createBlock('control_delete_this_clone', {
+    const block = createBlock('control_start_as_clone', {
 
     })
+
+    topLevelBlocks.push(block);
+    return block;
 }
 
 function control_create_clone_of(clone_option) {

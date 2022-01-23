@@ -1,14 +1,17 @@
 export default function readableToexecutableJs(js) {
-    let endOfLine = js.search(/;\s\s/);
+    js = trimJsFile(js);
+    console.log(js);
+
+    let endOfLine = js.search(/;\s/);
 
     while (endOfLine != -1) {
         let endOfStack = findEndOfStack(js, endOfLine);
 
         let childBlocks = js.substring(endOfLine + 1, endOfStack);
 
-        js = js.replaceBetween(endOfLine, endOfStack, '.next(' + childBlocks + '\r\n)');
+        js = js.replaceBetween(endOfLine, endOfStack, '.next(' + childBlocks + '\n)');
 
-        endOfLine = js.search(/;\s\s/);
+        endOfLine = js.search(/;\s/);
 
         console.log(js);
     }
@@ -109,7 +112,6 @@ export default function readableToexecutableJs(js) {
             } else {
                 js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
             }
-            console.log(js);
         })
 
         innermostBrackets = js.match(innermostBracketPattern);
@@ -122,59 +124,146 @@ export default function readableToexecutableJs(js) {
 
     var innermostCurlBrackets = js.match(innermostCurlBracketPattern);
 
+    console.log(js);
+
     while (innermostCurlBrackets) {
-        innermostCurlBrackets.forEach(contents => {
-            const regexps = [
-                /control_repeat\(.*\)\s\{[^\{\}]*\}/,
-                /control_repeat_until\(.*\)\s\{[^\{\}]*\}/,
-                /control_while\(.*\)\s\{[^\{\}]*\}/,
-                /control_if\(.*\)\s\{[^\{\}]*\}/,
-            ];
 
-            regexps.forEach(regexp => {
-                let matchingStatement = js.match(regexp);
+        const regexps = [
+            /control_repeat\(.*\)(.|\s)*?\{[^\{\}]*\}/,
+            /control_repeat_until\(.*\)(.|\s)*?\{[^\{\}]*\}/,
+            /control_while\(.*\)(.|\s)*?\{[^\{\}]*\}/,
+            /control_if\(.*\)(.|\s)*?\{[^\{\}]*\}/,
+        ];
 
-                if (matchingStatement) {
-                    let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
-                    let stringToReplace = ') ' + trimmedStatement;
-                    let replacementString = ', function () curl_OPEN\n return ' + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + ')';
-                    js = js.replace(stringToReplace, replacementString);
-                }
-            })
-
-            let statementRegex = /control_forever\(\)\s\{[^\{\}]*\}/;
-            let matchingStatement = js.match(statementRegex);
+        regexps.forEach(regexp => {
+            let matchingStatement = js.match(regexp);
 
             if (matchingStatement) {
                 let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
                 let stringToReplace = ') ' + trimmedStatement;
-                let replacementString = 'function () curl_OPEN\n return ' + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + ')';
-                js = js.replace(stringToReplace, replacementString);
-            }
-
-            // handle if-else blocks
-            statementRegex = /control_if\([^{}]*\)\selse\s\{[^\{\}]*\}/;
-            matchingStatement = js.match(statementRegex);
-
-            if (matchingStatement) {
-                let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
-                let stringToReplace = matchingStatement[0];
-                let replacementString = stringToReplace.replace('else ', '');
-                replacementString = replacementString.replace('control_if', 'control_if_else');
-                js = js.replace(stringToReplace, replacementString);
-
-                stringToReplace = ') ' + trimmedStatement;
-                replacementString = ', function () curl_OPEN\n return ' 
-                + trimmedStatement.replaceAll('{\r\n', '').replaceAll('}', 'curl_CLOSE') + ')';
-
+                let replacementString = ', function () curl_OPEN\n return ' + trimmedStatement.replaceAll('{\n', '').replaceAll('}', 'curl_CLOSE') + ')';
                 js = js.replace(stringToReplace, replacementString);
             }
         })
 
+        console.log(js);
+
+        let statementRegex = /control_forever\(\)(.|\s)*?\{[^\{\}]*\}/;
+        let matchingStatement = js.match(statementRegex);
+
+        if (matchingStatement) {
+            let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
+            let stringToReplace = ') ' + trimmedStatement;
+            let replacementString = 'function () curl_OPEN\n return ' + trimmedStatement.replaceAll('{\n', '').replaceAll('}', 'curl_CLOSE') + ')';
+            js = js.replace(stringToReplace, replacementString);
+        }
+
+        console.log(js);
+
+        // handle if-else blocks
+        statementRegex = /control_if\([^{}]*\)[^\n]*?else(.|\s)*?\{[^\{\}]*\}/;
+        matchingStatement = js.match(statementRegex);
+
+        console.log(js);
+
+        if (matchingStatement) {
+            let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
+            let stringToReplace = matchingStatement[0];
+            let replacementString = stringToReplace.replace('else ', '');
+            replacementString = replacementString.replace('control_if', 'control_if_else');
+            js = js.replace(stringToReplace, replacementString);
+
+            console.log(js);
+
+            stringToReplace = ') ' + trimmedStatement;
+            replacementString = ', function () curl_OPEN\n return ' +
+                trimmedStatement.replaceAll('{\n', '').replaceAll('}', 'curl_CLOSE') + ')';
+
+            js = js.replace(stringToReplace, replacementString);
+        }
+
+        console.log(js);
+
+        const functionHeaders = [
+            /event_whenflagclicked\(\)[^\n]*?\{[^\{\}]*\}/,
+            /event_whenthisspriteclicked\(\)[^\n]*?\{[^\{\}]*\}/,
+            /control_start_as_clone\(\)[^\n]*?\{[^\{\}]*\}/
+        ]
+
+        functionHeaders.forEach((regexp) => {
+            statementRegex = regexp;
+            matchingStatement = js.match(statementRegex);
+
+            if (matchingStatement) {
+                let func = matchingStatement[0];
+                let trimmedStatement = func.match(/\{[^\{\}]*\}/)[0];
+                let stringToReplace = func;
+                let replacementString = func.substring(0, matchingStatement[0].indexOf(')') + 1) +
+                    '.next(\n' + trimmedStatement.replaceAll('{\n', '').replaceAll('}', '') + ')';
+                js = js.replace(stringToReplace, replacementString);
+            }
+
+            console.log(js);
+        })
+
+        const eventDropdownHeaders = [
+            /event_whenkeypressed\(.*?\)[^\n]*?\{[^\{\}]*\}/,
+            /event_whenbackdropswitchesto\(.*?\)[^\n]*?\{[^\{\}]*\}/,
+            /event_whenbroadcastreceived\(.*?\)[^\n]*?\{[^\{\}]*\}/
+        ]
+
+        eventDropdownHeaders.forEach(header => {
+            matchingStatement = js.match(header);
+
+            if (matchingStatement) {
+                let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
+
+                var functions = (trimmedStatement.split('control_if'));
+
+                for (let i = 1; i < functions.length; i++) {
+                    const func = functions[i];
+                    const key = func.match(/\'.*\'/)[0];
+
+                    const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replaceAll('return', '');
+
+                    js += matchingStatement[0].substring(0, matchingStatement[0].indexOf('(') + 1) +
+                        '\n' + key + `).next(
+                        ` + functionText + ')\n';
+                }
+
+                js = js.replace(matchingStatement[0], '');
+            }
+        })
+
+        const greaterThanHeader = /event_whengreaterthan\(\)[^\n]*?\{[^\{\}]*\}/;
+        matchingStatement = js.match(greaterThanHeader);
+
+        if (matchingStatement) {
+            let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
+
+            var functions = (trimmedStatement.split('control_if'));
+
+            for (let i = 1; i < functions.length; i++) {
+                const func = functions[i];
+                const key = func.match(/\'.*\'/)[0];
+                const value = func.substring(func.indexOf(',') + 1, func.indexOf('), function'));
+
+                const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replaceAll('return', '');
+
+                js += 'event_whengreaterthan(' +
+                    '\n' + key + ',' + value + `).next(
+                    ` + functionText + ')\n';
+            }
+
+            js = js.replace(matchingStatement[0], '');
+        }
+
+        console.log(js);
+
         innermostCurlBrackets = js.match(innermostCurlBracketPattern);
     }
 
-    
+
     js = js.replaceAll('curl_OPEN', '{');
     js = js.replaceAll('curl_CLOSE', '}');
 
@@ -192,6 +281,11 @@ String.prototype.endIndexOf = function (substring) {
 String.prototype.replaceBetween = function (start, end, replacementSubstring) {
     return this.substring(0, start) + replacementSubstring + this.substring(end);
 };
+
+function trimJsFile(js) {
+    js = js.substring(js.indexOf('event_whenflagclicked'), js.lastIndexOf('}'));
+    return js;
+}
 
 /**
  * check if a regex is an exact match of a string

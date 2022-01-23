@@ -25,7 +25,7 @@ export default function createProject(files) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replaceAll('event_whenkeypressed(key) {',
                     `event_whenkeypressed(key) {
-                        if (key == ` + key + `) {
+                        if ((key == ` + key + `)) {
                             ` + trimmedSnippet + `\n}`);
             }
             if (snippet.includes('event_whenthisspriteclicked')) {
@@ -42,7 +42,7 @@ export default function createProject(files) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replaceAll('event_whenbackdropswitchesto(backdrop) {',
                 `event_whenkeypressed(backdrop) {
-                    if (backdrop == ` + backdrop + `) {
+                    if ((backdrop == ` + backdrop + `)) {
                         ` + trimmedSnippet + `\n}`);
             }
 
@@ -56,7 +56,7 @@ export default function createProject(files) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replaceAll('event_whengreaterthan() {',
                 `event_whengreaterthan() {
-                    if (` + whengreaterthanmenu + ` > ` + value + `) {
+                    if ((` + whengreaterthanmenu + ` > ` + value + `)) {
                         ` + trimmedSnippet + `\n}`);
             }
 
@@ -68,7 +68,7 @@ export default function createProject(files) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replaceAll('event_whenbroadcastreceived(message) {',
                     `event_whenbroadcastreceived(message) {
-                        if (message == ` + message + `) {
+                        if ((message == ` + message + `)) {
                             ` + trimmedSnippet + `\n}`);
             }
 
