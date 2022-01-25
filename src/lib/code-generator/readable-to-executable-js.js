@@ -4,7 +4,7 @@ export default function readableToexecutableJs(js) {
     js = trimJsFile(js);
     console.log(js);
 
-    let endOfLine = js.search(/;\s/);
+    let endOfLine = js.search(/;\n/);
 
     while (endOfLine != -1) {
         let endOfStack = findEndOfStack(js, endOfLine);
@@ -13,7 +13,7 @@ export default function readableToexecutableJs(js) {
 
         js = js.replaceBetween(endOfLine, endOfStack, '.next(' + childBlocks + '\n)');
 
-        endOfLine = js.search(/;\s/);
+        endOfLine = js.search(/;\n/);
 
         console.log(js);
     }
@@ -296,10 +296,14 @@ function getLocalVariables(js) {
 
     var variableList = [];
 
-    variablesInCode.forEach((variable) => {
-        variable = variable.substring(variable.indexOf('.') + 1, variable.indexOf(' ='));
-        variableList.push(variable);
-    })
+    if (variablesInCode) {
+        variablesInCode.forEach((variable) => {
+            variable = variable.substring(variable.indexOf('.') + 1, variable.indexOf(' ='));
+            variableList.push(variable);
+        })
+    }
+
+    
 
     return variableList;
 }

@@ -8,18 +8,45 @@ class FileUploadButton extends React.Component {
   }
 
   uploadFile(event) {
-    let file = event.target.files[0];
-    console.log(file);
+    for (let i = 0; i < event.target.files.length; i++) {
+      
+      let file = event.target.files[i];
 
-    var reader = new FileReader();
-    reader.readAsText(file);
+      if (file.name == 'project.js' || file.name == 'broadcaster.js' || file.name == 'sprite.js') {
+        continue;
+      }
 
-    reader.onload = function (e) {
-      this.props.generator.javascriptToDom(reader.result);
-      // this.domToWorkspace(this.javascriptToDom(reader.result));
-    };
+      console.log(file);
 
-    reader.onload = reader.onload.bind(this);
+      let reader = new FileReader();
+      reader.readAsText(file);
+
+      if (file.name == 'global-variable-manager.js' || file.name == 'Stage.js') {
+
+      }
+      else {
+        reader.onload = function (e) {
+          console.log(e);
+          const targets = this.props.vm.runtime.targets;
+          for (let j = 0; j < targets.length; j++) {
+            var target = targets[j];
+            if (target.sprite.name + '.js' == file.name) {
+              console.log(file.name);
+              console.log(reader.result);
+              this.props.vm.setEditingTarget(target.id);
+              this.props.generator.javascriptToDom(reader.result);
+              console.log(target);
+            }
+          }
+          // this.domToWorkspace(this.javascriptToDom(reader.result));
+        };
+    
+        reader.onload = reader.onload.bind(this);
+      }
+      
+    }
+
+    
   }
 
   // javascriptToDom(javascript) {
@@ -33,7 +60,10 @@ class FileUploadButton extends React.Component {
   render() {
     return <span style={{ 'position': 'absolute', 'left': '5rem', 'z-index': '9' }}>
       <input type="file"
+        directory=""
+        webkitdirectory=""
         name="myFile"
+        multiple
         onChange={this.uploadFile} />
     </span>
   }

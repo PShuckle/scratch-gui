@@ -35,7 +35,11 @@ class Generator {
         const executableJs = readableToexecutable(javascript);
         console.log(executableJs);
         const xml = javascriptToXml(executableJs);
+        console.log(this.vm.runtime._editingTarget.sprite.name);
+        console.log(xml.childNodes);
         this.ScratchBlocks.Xml.domToWorkspace(xml, this.workspace);
+        console.log(this.vm.runtime._editingTarget.sprite.name);
+        
     }
 }
 

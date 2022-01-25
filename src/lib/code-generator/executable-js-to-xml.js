@@ -12,6 +12,9 @@ export default function javascriptToXml(javascript) {
     }
 
     const topBlock = eval(javascript.code);
+
+    console.log(javascript.code);
+    console.log(topLevelBlocks);
     var xml = document.createElement('xml');
 
     xml = addVariables(xml, javascript.variables);
@@ -19,6 +22,8 @@ export default function javascriptToXml(javascript) {
     topLevelBlocks.forEach(block => {
         xml.appendChild(block);
     })
+
+    topLevelBlocks = [];
 
     console.log(xml);
 

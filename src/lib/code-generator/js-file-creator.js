@@ -46,7 +46,7 @@ export default function createProject(files) {
             if (snippet.includes('event_whenthisspriteclicked')) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replaceAll('event_whenthisspriteclicked() {',
-                    'event_whenflagclicked() {\n' + trimmedSnippet + '\n');
+                    'event_whenthisspriteclicked() {\n' + trimmedSnippet + '\n');
             }
 
             if (snippet.includes('event_whenbackdropswitchesto')) {
