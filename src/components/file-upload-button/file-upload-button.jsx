@@ -8,45 +8,55 @@ class FileUploadButton extends React.Component {
   }
 
   uploadFile(event) {
-    for (let i = 0; i < event.target.files.length; i++) {
-      
-      let file = event.target.files[i];
+    this.createBlocksFromFile(event.target.files, 0);
+  }
 
-      if (file.name == 'project.js' || file.name == 'broadcaster.js' || file.name == 'sprite.js') {
-        continue;
-      }
-
-      console.log(file);
-
-      let reader = new FileReader();
-      reader.readAsText(file);
-
-      if (file.name == 'global-variable-manager.js' || file.name == 'Stage.js') {
-
-      }
-      else {
-        reader.onload = function (e) {
-          console.log(e);
-          const targets = this.props.vm.runtime.targets;
-          for (let j = 0; j < targets.length; j++) {
-            var target = targets[j];
-            if (target.sprite.name + '.js' == file.name) {
-              console.log(file.name);
-              console.log(reader.result);
-              this.props.vm.setEditingTarget(target.id);
-              this.props.generator.javascriptToDom(reader.result);
-              console.log(target);
-            }
-          }
-          // this.domToWorkspace(this.javascriptToDom(reader.result));
-        };
-    
-        reader.onload = reader.onload.bind(this);
-      }
-      
+  createBlocksFromFile(files, i) {
+    console.log(files);
+    console.log(i);
+    if (i >= files.length) {
+      return;
     }
 
-    
+    const file = files[i];
+
+    console.log(file);
+
+    if (file.name == 'project.js' || file.name == 'broadcaster.js' || file.name == 'sprite.js') {
+      // increase the delay if there are bugs!
+      setTimeout(this.createBlocksFromFile.bind(this, files, i+1), 5);
+      return;
+    }
+
+    console.log(file);
+    let reader = new FileReader();
+    reader.readAsText(file);
+
+    if (file.name == 'global-variable-manager.js') {
+
+    }
+    else {
+      reader.onload = function (e) {
+        console.log(e);
+        const targets = this.props.vm.runtime.targets;
+        for (let j = 0; j < targets.length; j++) {
+          var target = targets[j];
+          if (target.sprite.name + '.js' == file.name) {
+            console.log(file.name);
+            console.log(reader.result);
+            this.props.vm.setEditingTarget(target.id);
+            this.props.generator.javascriptToDom(reader.result);
+            console.log(target);
+          }
+        }
+        // this.domToWorkspace(this.javascriptToDom(reader.result));
+      };
+
+      reader.onload = reader.onload.bind(this);
+    }
+
+    setTimeout(this.createBlocksFromFile.bind(this, files, i+1), 5);
+    return;
   }
 
   // javascriptToDom(javascript) {
