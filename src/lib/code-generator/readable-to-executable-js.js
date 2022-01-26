@@ -39,6 +39,23 @@ export default function readableToexecutableJs(js) {
             var trimmedContents = contents.substring(1, contents.length - 1);
             if (matchExact(contents, /\(-?\d+\)/)) { // math_number
                 js = js.replace(contents, 'math_numberbr_OPEN' + trimmedContents + 'br_CLOSE');
+            } else if (matchExact(contents, /\('.*'\)/)) { // text
+                var parentFunctionHeaderPattern = new RegExp('(\\(|\\n|,)[^,\\n(]*\\(' + trimmedContents + '\\)');
+
+                var parentFunctionHeader = js.match(parentFunctionHeaderPattern)[0];
+                var parentFunctionName = parentFunctionHeader.match(/(\(|\s)[^,\s(]*\(/)[0];
+                parentFunctionName = parentFunctionName.substring(1, parentFunctionName.length - 1);
+
+                var textInDropdownBlock = false;
+                if (blocksWithTextDropdowns.includes(parentFunctionName)) {
+                    textInDropdownBlock = true;
+
+                }
+                if (!textInDropdownBlock) {
+                    js = js.replace(contents, 'textbr_OPEN' + trimmedContents + 'br_CLOSE');
+                } else {
+                    js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
+                }
             } else if (js.includes('for ' + contents)) { // control_repeat (for loop)
                 // this needs to be handled before operators as + and < are used in the loop header
                 let forLoopHeader = 'for ' + contents;
@@ -95,23 +112,6 @@ export default function readableToexecutableJs(js) {
                     js = js.replace(whileLoopHeader, 'control_whilebr_OPEN' + condition + 'br_CLOSE');
                 }
 
-            } else if (matchExact(contents, /\('.*'\)/)) { // text
-                var parentFunctionHeaderPattern = new RegExp('(\\(|\\n|,)[^,\\n(]*\\(' + trimmedContents + '\\)');
-
-                var parentFunctionHeader = js.match(parentFunctionHeaderPattern)[0];
-                var parentFunctionName = parentFunctionHeader.match(/(\(|\s)[^,\s(]*\(/)[0];
-                parentFunctionName = parentFunctionName.substring(1, parentFunctionName.length - 1);
-
-                var textInDropdownBlock = false;
-                if (blocksWithTextDropdowns.includes(parentFunctionName)) {
-                    textInDropdownBlock = true;
-
-                }
-                if (!textInDropdownBlock) {
-                    js = js.replace(contents, 'textbr_OPEN' + trimmedContents + 'br_CLOSE');
-                } else {
-                    js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
-                }
             } else {
                 js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
             }
@@ -132,14 +132,17 @@ export default function readableToexecutableJs(js) {
     while (innermostCurlBrackets) {
 
         const regexps = [
-            /control_repeat\(.*\)(.|\s)*?\{[^\{\}]*\}/,
-            /control_repeat_until\(.*\)(.|\s)*?\{[^\{\}]*\}/,
-            /control_while\(.*\)(.|\s)*?\{[^\{\}]*\}/,
-            /control_if\(.*\)(.|\s)*?\{[^\{\}]*\}/,
+            /control_repeat\((.| )*?\{[^\{\}]*?\}/,
+            /control_repeat_until\((.| )*?\{[^\{\}]*?\}/,
+            /control_while\((.| )*?\{[^\{\}]*?\}/,
+            /control_if\((.| )*?\{[^\{\}]*?\}/,
         ];
 
         regexps.forEach(regexp => {
             let matchingStatement = js.match(regexp);
+
+            console.log(matchingStatement);
+            console.log(regexp);
 
             if (matchingStatement) {
                 let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
@@ -210,9 +213,9 @@ export default function readableToexecutableJs(js) {
         })
 
         const eventDropdownHeaders = [
-            /event_whenkeypressed\(.*?\)[^\n]*?\{[^\{\}]*\}/,
-            /event_whenbackdropswitchesto\(.*?\)[^\n]*?\{[^\{\}]*\}/,
-            /event_whenbroadcastreceived\(.*?\)[^\n]*?\{[^\{\}]*\}/
+            /event_whenkeypressed[^\n]*?\{[^\{\}]*\}/,
+            /event_whenbackdropswitchesto[^\n]*?\{[^\{\}]*\}/,
+            /event_whenbroadcastreceived[^\n]*?\{[^\{\}]*\}/
         ]
 
         eventDropdownHeaders.forEach(header => {
@@ -221,17 +224,22 @@ export default function readableToexecutableJs(js) {
             if (matchingStatement) {
                 let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
 
-                var functions = (trimmedStatement.split('control_if'));
+                var functions = (trimmedStatement.split(/CURL_CLOSE\)\s*?control_if/));
 
-                for (let i = 1; i < functions.length; i++) {
+                for (let i = 0; i < functions.length; i++) {
                     const func = functions[i];
-                    const key = func.match(/\'.*\'/)[0];
+                    const keyMatch = func.match(/\'.*\'/);
 
-                    const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replaceAll('return', '');
+                    if (keyMatch) {
+                        const key = keyMatch[0];
+                        const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replace('return', '');
 
-                    js += matchingStatement[0].substring(0, matchingStatement[0].indexOf('(') + 1) +
-                        '\n' + key + `).next(
+                        js += matchingStatement[0].substring(0, matchingStatement[0].indexOf('(') + 1) +
+                            '\n' + key + `).next(
                         ` + functionText + ')\n';
+                    }
+
+
                 }
 
                 js = js.replace(matchingStatement[0], '');
@@ -244,14 +252,16 @@ export default function readableToexecutableJs(js) {
         if (matchingStatement) {
             let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
 
-            var functions = (trimmedStatement.split('control_if'));
+            var functions = (trimmedStatement.split(/CURL_CLOSE\)\s*?control_if/));
+
+            console.log(functions);
 
             for (let i = 1; i < functions.length; i++) {
                 const func = functions[i];
                 const key = func.match(/\'.*\'/)[0];
                 const value = func.substring(func.indexOf(',') + 1, func.indexOf('), function'));
 
-                const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replaceAll('return', '');
+                const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replace('return', '');
 
                 js += 'event_whengreaterthan(' +
                     '\n' + key + ',' + value + `).next(
@@ -264,6 +274,7 @@ export default function readableToexecutableJs(js) {
         console.log(js);
 
         innermostCurlBrackets = js.match(innermostCurlBracketPattern);
+        console.log(innermostCurlBrackets);
     }
 
 
@@ -272,7 +283,10 @@ export default function readableToexecutableJs(js) {
 
     console.log(js);
 
-    return {code: js, variables: vars};
+    return {
+        code: js,
+        variables: vars
+    };
 }
 
 String.prototype.endIndexOf = function (substring) {
@@ -303,7 +317,7 @@ function getLocalVariables(js) {
         })
     }
 
-    
+
 
     return variableList;
 }
