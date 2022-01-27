@@ -22,40 +22,13 @@ export default function readableToexecutableJs(js) {
 
     var innermostBrackets = js.match(innermostBracketPattern);
 
-    const blocksWithTextDropdowns = [
-        'motion_goto_menu', 'motion_glideto_menu', 'motion_pointtowards_menu',
-        'motion_setrotationstyle', 'looks_costume', 'looks_backdrops',
-        'looks_changeeffectby', 'looks_seteffectto', 'looks_gotofrontback',
-        'looks_goforwardbackwardlayers', 'looks_costumenumbername',
-        'looks_backdropnumbername', 'sound_sounds_menu', 'sensing_touchingobjectmenu',
-        'colour_picker', 'sensing_distancetomenu', 'sensing_keyoptions', 'sensing_setdragmode',
-        'sensing_of', 'sensing_of_object_menu', 'sensing_current', 'operator_mathop', 'control_stop',
-        'control_create_clone_of_menu', 'data_variable', 'data_setvariableto', 'data_changevariableby',
-        'data_showvariable', 'data_hidevariable'
-    ];
-
     while (innermostBrackets) {
         innermostBrackets.forEach(contents => {
             var trimmedContents = contents.substring(1, contents.length - 1);
             if (matchExact(contents, /\(-?\d+\)/)) { // math_number
                 js = js.replace(contents, 'math_numberbr_OPEN' + trimmedContents + 'br_CLOSE');
             } else if (matchExact(contents, /\('.*'\)/)) { // text
-                var parentFunctionHeaderPattern = new RegExp('(\\(|\\n|,)[^,\\n(]*\\(' + trimmedContents + '\\)');
-
-                var parentFunctionHeader = js.match(parentFunctionHeaderPattern)[0];
-                var parentFunctionName = parentFunctionHeader.match(/(\(|\s)[^,\s(]*\(/)[0];
-                parentFunctionName = parentFunctionName.substring(1, parentFunctionName.length - 1);
-
-                var textInDropdownBlock = false;
-                if (blocksWithTextDropdowns.includes(parentFunctionName)) {
-                    textInDropdownBlock = true;
-
-                }
-                if (!textInDropdownBlock) {
-                    js = js.replace(contents, 'textbr_OPEN' + trimmedContents + 'br_CLOSE');
-                } else {
-                    js = js.replace(contents, 'br_OPEN' + trimmedContents + 'br_CLOSE');
-                }
+                js = js.replace(contents, 'br_OPENtextbr_OPEN' + trimmedContents + 'br_CLOSEbr_CLOSE');
             } else if (js.includes('for ' + contents)) { // control_repeat (for loop)
                 // this needs to be handled before operators as + and < are used in the loop header
                 let forLoopHeader = 'for ' + contents;
@@ -306,18 +279,16 @@ function trimJsFile(js) {
 
 function getLocalVariables(js) {
     var constructorBody = js.substring(js.indexOf('this'), js.indexOf('}'));
-    var variablesInCode = constructorBody.match(/this\..*? =/g);
 
-    var variableList = [];
+    var localVarPattern = /this\.(?<name>.*?) = (?<type>.*?);/g;
 
-    if (variablesInCode) {
-        variablesInCode.forEach((variable) => {
-            variable = variable.substring(variable.indexOf('.') + 1, variable.indexOf(' ='));
-            variableList.push(variable);
-        })
+    var variableList = {};
+
+    var variable;
+
+    while (variable = localVarPattern.exec(constructorBody)) {
+        variableList[variable.groups.name] = variable.groups.type;
     }
-
-
 
     return variableList;
 }

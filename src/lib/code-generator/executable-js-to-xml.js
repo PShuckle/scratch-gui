@@ -31,20 +31,25 @@ export default function javascriptToXml(javascript) {
 }
 
 function addVariables(xml, variables) {
+    console.log(variables);
     const variablesTag = document.createElement('variables');
     xml.appendChild(variablesTag);
-    for (let i = 0; i < variables.length; i++) {
-        var variable = document.createElement('variable');
-        variable.setAttribute('islocal', 'true');
-        variable.setAttribute('type', '');
-        variable.textContent = variables[i];
-        variablesTag.appendChild(variable);
-    }
+
+    Object.keys(variables).forEach(variable => {
+        var variableTag = document.createElement('variable');
+        variableTag.setAttribute('islocal', 'true');
+        variableTag.setAttribute('type', '');
+        if (variables[variable] == '[]') {
+            variableTag.setAttribute('type', 'list');
+        }
+        variableTag.textContent = variable;
+        variablesTag.appendChild(variableTag);
+    })
 
     return xml;
 }
 
-function createBlock(type, inputs, shadow) {
+function createBlock(type, inputs, shadow, list) {
     var block;
 
     if (shadow) {
@@ -75,6 +80,9 @@ function createBlock(type, inputs, shadow) {
             const field = document.createElement('field');
             block.appendChild(field);
             field.setAttribute('name', fieldName);
+            if (list) {
+                field.setAttribute('variabletype', 'list');
+            }
             field.textContent = fields[fieldName];
         });
     }
@@ -160,7 +168,7 @@ function motion_goto(to) {
 function motion_goto_menu(to) {
     return createBlock('motion_goto_menu', {
         fields: {
-            TO: to
+            TO: to.innerText
         }
     }, true);
 }
@@ -187,7 +195,7 @@ function motion_glideto(secs, to) {
 function motion_glideto_menu(to) {
     return createBlock('motion_glideto_menu', {
         fields: {
-            TO: to
+            TO: to.innerText
         }
     }, true);
 }
@@ -211,7 +219,7 @@ function motion_pointtowards(towards) {
 function motion_pointtowards_menu(towards) {
     return createBlock('motion_pointtowards_menu', {
         fields: {
-            TOWARDS: towards
+            TOWARDS: towards.innerText
         }
     }, true);
 }
@@ -257,7 +265,7 @@ function motion_ifonedgebounce() {
 function motion_setrotationstyle(style) {
     return createBlock('motion_setrotationstyle', {
         fields: {
-            STYLE: style
+            STYLE: style.innerText
         }
     })
 }
@@ -324,7 +332,7 @@ function looks_switchcostumeto(costume) {
 function looks_costume(costume) {
     return createBlock('looks_costume', {
         fields: {
-            COSTUME: costume
+            COSTUME: costume.innerText
         }
     }, true)
 }
@@ -346,7 +354,7 @@ function looks_switchbackdropto(backdrop) {
 function looks_backdrops(backdrop) {
     return createBlock('looks_backdrops', {
         fields: {
-            BACKDROP: backdrop
+            BACKDROP: backdrop.innerText
         }
     }, true)
 }
@@ -416,7 +424,7 @@ function looks_hide() {
 function looks_gotofrontback(front_back) {
     return createBlock('looks_gotofrontback', {
         fields: {
-            FRONT_BACK: front_back
+            FRONT_BACK: front_back.innerText
         }
     })
 }
@@ -443,7 +451,7 @@ function looks_backdropnumbername(number_name) {
 function numberNameBlock(type, number_name) {
     return createBlock(type, {
         fields: {
-            NUMBER_NAME: number_name
+            NUMBER_NAME: number_name.innerText
         }
     })
 }
@@ -473,7 +481,7 @@ function sound_play(sound_menu) {
 function sound_sounds_menu(sound_menu) {
     return createBlock('sound_sounds_menu', {
         fields: {
-            SOUND_MENU: sound_menu
+            SOUND_MENU: sound_menu.innerText
         }
     }, true)
 }
@@ -618,7 +626,7 @@ function event_broadcastandwait(broadcast_input) {
 function event_broadcast_menu(broadcast_option) {
     return createBlock('event_broadcast_menu', {
         fields: {
-            BROADCAST_OPTION: broadcast_option
+            BROADCAST_OPTION: broadcast_option.innerText
         }
     })
 }
@@ -706,7 +714,7 @@ function control_while(condition, substack) {
 function control_stop(stop_option) {
     return createBlock('control_stop', {
         fields: {
-            STOP_OPTION: stop_option
+            STOP_OPTION: stop_option.innerText
         }
     })
 }
@@ -731,7 +739,7 @@ function control_create_clone_of(clone_option) {
 function control_create_clone_of_menu(clone_option) {
     return createBlock('control_create_clone_of_menu', {
         fields: {
-            CLONE_OPTION: clone_option
+            CLONE_OPTION: clone_option.innerText
         }
     }, true)
 }
@@ -753,7 +761,7 @@ function sensing_touchingobject(touchingobjectmenu) {
 function sensing_touchingobjectmenu(touchingobjectmenu) {
     return createBlock('sensing_touchingobjectmenu', {
         fields: {
-            TOUCHINGOBJECTMENU: touchingobjectmenu
+            TOUCHINGOBJECTMENU: touchingobjectmenu.innerText
         }
     }, true)
 }
@@ -778,7 +786,7 @@ function sensing_coloristouchingcolor(color, color2) {
 function colour_picker(colour) {
     return createBlock('colour_picker', {
         fields: {
-            COLOUR: colour
+            COLOUR: colour.innerText
         }
     }, true)
 }
@@ -794,7 +802,7 @@ function sensing_distanceto(distancetomenu) {
 function sensing_distancetomenu(distancetomenu) {
     return createBlock('sensing_distancetomenu', {
         fields: {
-            DISTANCETOMENU: distancetomenu
+            DISTANCETOMENU: distancetomenu.innerText
         }
     }, true)
 }
@@ -824,7 +832,7 @@ function sensing_keypressed(key_option) {
 function sensing_keyoptions(key_option) {
     return createBlock('sensing_keyoptions', {
         fields: {
-            KEY_OPTION: key_option
+            KEY_OPTION: key_option.innerText
         }
     })
 }
@@ -850,7 +858,7 @@ function sensing_mousey() {
 function sensing_setdragmode(drag_mode) {
     return createBlock('sensing_setdragmode', {
         fields: {
-            DRAG_MODE: drag_mode
+            DRAG_MODE: drag_mode.innerText
         }
     })
 }
@@ -887,7 +895,7 @@ function sensing_of(property, object) {
 function sensing_of_object_menu(object) {
     return createBlock('sensing_of_object_menu', {
         fields: {
-            OBJECT: object
+            OBJECT: object.innerText
         }
     })
 }
@@ -895,7 +903,7 @@ function sensing_of_object_menu(object) {
 function sensing_current(currentmenu) {
     return createBlock('sensing_current', {
         fields: {
-            CURRENTMENU: currentmenu
+            CURRENTMENU: currentmenu.innerText
         }
     })
 }
@@ -1066,7 +1074,7 @@ function data_changevariableby(variable, value) {
 function data_showvariable(variable) {
     return createBlock('data_showvariable', {
         fields: {
-            VARIABLE: variable
+            VARIABLE: variable.innerText
         }
     })
 }
@@ -1074,7 +1082,7 @@ function data_showvariable(variable) {
 function data_hidevariable(variable) {
     return createBlock('data_hidevariable', {
         fields: {
-            VARIABLE: variable
+            VARIABLE: variable.innerText
         }
     })
 }
@@ -1082,7 +1090,128 @@ function data_hidevariable(variable) {
 function data_variable(variable) {
     return createBlock('data_variable', {
         fields: {
-            VARIABLE: variable
+            VARIABLE: variable.innerText
         }
     })
+}
+
+function data_listcontents(list) {
+    return createBlock('data_listcontents', {
+        fields: {
+            LIST: list.innerText
+        }
+    }, false, true)
+}
+
+function data_addtolist(list, item) {
+    return createBlock('data_addtolist', {
+        values: {
+            ITEM: item
+        },
+        fields: {
+            LIST: list
+        }
+    }, false, true)
+}
+
+function data_deleteoflist(list, index) {
+    return createBlock('data_deleteoflist', {
+        values: {
+            INDEX: index
+        },
+        fields: {
+            LIST: list
+        }
+    }, false, true)
+}
+
+function data_deletealloflist(list) {
+    return createBlock('data_deletealloflist', {
+        fields: {
+            LIST: list.innerText
+        }
+    }, false, true)
+}
+
+function data_insertatlist(list, item, index) {
+    return createBlock('data_insertatlist', {
+        values: {
+            ITEM: item,
+            INDEX: index
+        },
+        fields: {
+            LIST: list
+        }
+    }, false, true)
+}
+
+function data_replaceitemoflist(list, index, item) {
+    return createBlock('data_replaceitemoflist', {
+        values: {
+            INDEX: index,
+            ITEM: item
+        },
+        fields: {
+            LIST: list
+        }
+    }, false, true)
+}
+
+function data_itemoflist(list, index) {
+    return createBlock('data_itemoflist', {
+        values: {
+            INDEX: index,
+        },
+        fields: {
+            LIST: list
+        }
+    }, false, true)
+}
+
+function data_itemnumoflist(list, item) {
+    return createBlock('data_itemnumoflist', {
+        values: {
+            ITEM: item
+        },
+        fields: {
+            LIST: list
+        }
+    }, false, true)
+}
+
+function data_lengthoflist(list) {
+    return createBlock('data_lengthoflist', {
+        fields: {
+            LIST: list.innerText
+        }
+    }, false, true)
+}
+
+function data_listcontainsitem(list, item) {
+    return createBlock('data_listcontainsitem', {
+        values: {
+            ITEM: item
+        },
+        fields: {
+            LIST: list
+        }
+    }, false, true)
+}
+
+function data_showlist(list) {
+    console.log(list.innerText)
+    return createBlock('data_showlist', {
+        fields: {
+            LIST: list.innerText
+        }
+    }, false, true)
+}
+
+function data_hidelist(list) {
+    console.log(list.innerText)
+    return createBlock('data_hidelist', {
+        fields: {
+            LIST: list.innerText
+        }
+    }, false, true)
 }

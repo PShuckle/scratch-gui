@@ -21,7 +21,10 @@ export default function domToExecutableJavascript(xml) {
             var variableCount = xmlChild.childNodes.length;
             for (var j = 0; j < variableCount; j++) {
                 var variable = xmlChild.childNodes[j];
-                variables[variable.innerText] = variable.getAttribute('islocal');
+                variables[variable.innerText] = {
+                    local: variable.getAttribute('islocal'),
+                    type: variable.getAttribute('type')
+                };
             }
         }
     }

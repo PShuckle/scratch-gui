@@ -3,7 +3,7 @@ import JSZip from 'jszip';
 export default function createProject(files) {
     var zip = new JSZip();
 
-    var globalVars = [];
+    var globalVars = {};
 
     Object.keys(files).forEach((name) => {
         var fileCode = createFileSkeleton(name);
@@ -11,13 +11,15 @@ export default function createProject(files) {
         var variables = files[name].variables;
 
         Object.keys(variables).forEach(variable => {
-            if (variables[variable] == 'true') {
+            var init = '0';
+            if (variables[variable].type == 'list') {
+                init = '[]';
+            }
+            if (variables[variable].local == 'true') {
                 fileCode = fileCode.replace('super(broadcaster);',
-                    'super(broadcaster);\nthis.' + variable + ' = 0;');
+                    'super(broadcaster);\nthis.' + variable + ' = ' + init + ';');
             } else {
-                if (!globalVars.includes(variable)) {
-                    globalVars.push(variable);
-                }
+                globalVars[variable] = init;
                 
             }
         })
@@ -238,9 +240,9 @@ function createGlobalVariableManager(vars) {
         constructor () {
             this.variables = {
                 `
-    for (let i = 0; i < vars.length; i++) {
-        code += vars[i] + ': 0,\n'
-    }
+    Object.keys(vars).forEach((variable) => {
+        code += variable + ': ' + vars[variable] + ',\n'
+    })
     code += `};
         }
     
