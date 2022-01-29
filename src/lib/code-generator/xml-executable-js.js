@@ -49,7 +49,7 @@ function handleChildren(blockChildNodes) {
             var fieldValue = childNode.textContent;
 
             if (isNaN(fieldValue)) {
-                fieldValue = '\'' + fieldValue + '\'';
+                fieldValue = '"' + fieldValue + '"';
             }
 
             childrenBlockCode.inputs[childNode.getAttribute('name')] = fieldValue;
@@ -62,9 +62,16 @@ function handleChildren(blockChildNodes) {
             var nextBlock = childNode.childNodes[0];
             childrenBlockCode.next = '.next(\n' + blockToExecutableCode(nextBlock) + ', )';
         } else if (name == 'mutation') {
-            var funcName = childNode.getAttribute('proccode')
-            childrenBlockCode.inputs['mutation'] = "'" +
-                funcName.substring(0, funcName.indexOf(' ')) + "'";
+            var funcName = childNode.getAttribute('proccode');
+
+            if (funcName) { // true for procedure blocks defined by the user
+                if (funcName.indexOf(' ') != -1) {
+                    funcName = funcName.substring(0, funcName.indexOf(' '))
+                }
+                funcName = funcName.replace(/\W/g, '')
+                childrenBlockCode.mutation = "'" +
+                    funcName + "'";
+            }
         }
     }
 
@@ -85,6 +92,12 @@ function blockToExecutableCode(block) {
     const inputs = childrenBlockCode.inputs;
 
     var code = block.getAttribute('type') + '(';
+
+    // ensure mutations are always the first parameter
+    if (childrenBlockCode.mutation) {
+        code += childrenBlockCode.mutation;
+        code += ', ';
+    }
 
     Object.keys(inputs).forEach((input) => {
         code += inputs[input];

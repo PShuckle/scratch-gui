@@ -13,8 +13,6 @@ export default function javascriptToXml(javascript) {
 
     const topBlock = eval(javascript.code);
 
-    console.log(javascript.code);
-    console.log(topLevelBlocks);
     var xml = document.createElement('xml');
 
     xml = addVariables(xml, javascript.variables);
@@ -31,7 +29,6 @@ export default function javascriptToXml(javascript) {
 }
 
 function addVariables(xml, variables) {
-    console.log(variables);
     const variablesTag = document.createElement('variables');
     xml.appendChild(variablesTag);
 
@@ -109,6 +106,14 @@ function createBlock(type, inputs, shadow, list) {
 }
 
 function math_number(num) {
+    return createBlock('math_number', {
+        fields: {
+            NUM: num
+        }
+    }, true);
+}
+
+function math_positive_number(num) {
     return createBlock('math_number', {
         fields: {
             NUM: num
@@ -725,8 +730,22 @@ function control_stop(stop_option) {
     return createBlock('control_stop', {
         fields: {
             STOP_OPTION: stop_option.innerText
-        }
+        },
+        mutation: createControlStopMutation(stop_option)
     })
+}
+
+function createControlStopMutation(stop_option) {
+    const mutation = document.createElement('mutation');
+    
+    if (stop_option == 'all' || stop_option || 'this script') {
+        mutation.setAttribute('hasnext', false);
+    } else {
+        mutation.setAttribute('hasnext', true);
+    }
+
+    return mutation;
+    
 }
 
 function control_start_as_clone() {
@@ -1209,7 +1228,6 @@ function data_listcontainsitem(list, item) {
 }
 
 function data_showlist(list) {
-    console.log(list.innerText)
     return createBlock('data_showlist', {
         fields: {
             LIST: list.innerText
@@ -1218,7 +1236,6 @@ function data_showlist(list) {
 }
 
 function data_hidelist(list) {
-    console.log(list.innerText)
     return createBlock('data_hidelist', {
         fields: {
             LIST: list.innerText

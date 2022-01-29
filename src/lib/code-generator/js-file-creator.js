@@ -26,30 +26,43 @@ export default function createProject(files) {
 
         var codeSnippets = generatedJsCode.split('\n\n');
 
-        var fileCodeBody = '';
+        var procedures = '';
 
         codeSnippets.forEach(snippet => {
             if (snippet.includes('event_whenflagclicked')) {
                 // remove first line of code from snippet 
                 // - this is the code representing the hat block
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCodeBody +=
-                    'event_whenflagclicked() {\n' + trimmedSnippet + '\n}\n\n';
+
+                fileCode = fileCode.replace(`event_whenflagclicked() {`,
+                    `event_whenflagclicked() {
+                        setTimeout(function() {
+                        ` + trimmedSnippet + `
+                    }, 0)`)
+
+
             }
             if (snippet.includes('event_whenkeypressed')) {
                 var keyPressPattern = /(?:event_whenkeypressed\()(?<keyname>[^()]*)(?:\))/g;
                 var key = keyPressPattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCodeBody +=
+
+                fileCode = fileCode.replace(`event_whenkeypressed(key) {`,
                     `event_whenkeypressed(key) {
                         if ((key == ` + key.groups.keyname + `)) {
-                            ` + trimmedSnippet + `\n}\n}\n\n`;
+                                setTimeout(function() {
+                                ` + trimmedSnippet + `
+                            }, 0)
+                        }`)
             }
             if (snippet.includes('event_whenthisspriteclicked')) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCodeBody +=
-                    'event_whenthisspriteclicked() {\n' + trimmedSnippet + '\n}\n\n';
+                fileCode = fileCode.replace(`event_whenthisspriteclicked() {`,
+                    `event_whenthisspriteclicked() {
+                        setTimeout(function() {
+                        ` + trimmedSnippet + `
+                    }, 0)`)
             }
 
             if (snippet.includes('event_whenbackdropswitchesto')) {
@@ -57,10 +70,13 @@ export default function createProject(files) {
                 var backdrop = backdropPattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCodeBody +=
+                fileCode = fileCode.replace(`event_whenbackdropswitchesto(backdrop) {`,
                     `event_whenbackdropswitchesto(backdrop) {
                         if ((backdrop == ` + backdrop.groups.backdropname + `)) {
-                            ` + trimmedSnippet + `\n}\n}\n\n`;
+                                setTimeout(function() {
+                                ` + trimmedSnippet + `
+                            }, 0)
+                        }`)
             }
 
             if (snippet.includes('event_whengreaterthan')) {
@@ -68,10 +84,15 @@ export default function createProject(files) {
                 var greaterThan = greaterThanPattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCodeBody += `event_whengreaterthan() {
-                    if ((` + greaterThan.groups.whengreaterthanmenu + ` > ` +
+
+                fileCode = fileCode.replace(`event_whengreaterthan() {`,
+                    `event_whengreaterthan() {
+                        if ((` + greaterThan.groups.whengreaterthanmenu + ` > ` +
                     greaterThan.groups.value + `)) {
-                        ` + trimmedSnippet + `\n}\n}\n\n`;
+                                    setTimeout(function() {
+                                    ` + trimmedSnippet + `
+                                }, 0)
+                            }`)
             }
 
             if (snippet.includes('event_whenbroadcastreceived')) {
@@ -79,17 +100,23 @@ export default function createProject(files) {
                 var message = messagePattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCodeBody +=
+                fileCode = fileCode.replace(`event_whenbroadcastreceived(message) {`,
                     `event_whenbroadcastreceived(message) {
                         if ((message == ` + message.groups.messagetext + `)) {
-                            ` + trimmedSnippet + `\n}\n}\n\n`;
+                                setTimeout(function() {
+                                ` + trimmedSnippet + `
+                            }, 0)
+                        }`)
             }
 
             if (snippet.includes('control_start_as_clone')) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
 
-                fileCodeBody +=
-                    'control_start_as_clone() {\n' + trimmedSnippet + '\n}\n\n';
+                fileCode = fileCode.replace(`control_start_as_clone() {`,
+                    `control_start_as_clone() {
+                        setTimeout(function() {
+                        ` + trimmedSnippet + `
+                    }, 0)`)
             }
 
             if (snippet.includes('procedures_definition')) {
@@ -104,14 +131,14 @@ export default function createProject(files) {
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('});\n') + 4);
 
-                fileCodeBody += func.groups.funcName + `(` +
+                procedures += func.groups.funcName + `(` +
                     params.substring(0, params.lastIndexOf(',')) + `) {\n` + trimmedSnippet + '\n}\n\n'
 
 
             }
         })
 
-        fileCode = fileCode.replace('CODEBODY', fileCodeBody);
+        fileCode = fileCode.replace('PROCEDURES_DEFINITIONS', procedures);
 
         var fileName = name + '.js';
 
@@ -145,7 +172,36 @@ function createFileSkeleton(name) {
             super(broadcaster);
         }
 
-        CODEBODY
+        event_whenflagclicked() {
+
+        }
+
+        event_whenkeypressed(key) {
+
+        }
+
+        event_whenthisspriteclicked() {
+
+        }
+
+        event_whenbackdropswitchesto(backdrop) {
+
+        }
+
+        event_whengreaterthan() {
+
+        }
+
+        event_whenbroadcastreceived(message) {
+
+        }
+
+        control_start_as_clone() {
+
+        }
+
+        PROCEDURES_DEFINITIONS
+
     }
 
     export default ` + name + `;`;

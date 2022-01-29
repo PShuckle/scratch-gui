@@ -14,7 +14,8 @@ export default function executableToReadableJs(js) {
     const variableNameGenerator = new VariableNameGenerator();
 
     const basicInputBlocks = [
-        /math_number\(/g, /math_whole_number\(/g, /math_angle\(/g, /math_integer\(/g, /text\(/g
+        /math_number\(/g, /math_whole_number\(/g, /math_positive_number\(/g,
+        /math_angle\(/g, /math_integer\(/g, /text\(/g
     ];
 
     basicInputBlocks.forEach(block => {
@@ -96,18 +97,19 @@ function replaceFunctionWith(js, func, replacementStringBuilder) {
     if (matches) {
         matches.forEach(match => {
             const functionData = parseFunction(js, js.endIndexOf(match));
-    
+
             js = js.replaceBetween(js.indexOf(match), functionData.endIndex, replacementStringBuilder(functionData.params, match));
             console.log(js);
         });
     }
-    
+
 
     return js;
 }
 
 function parseFunction(js, start) {
     var braceDepth = 0;
+    var inString = false;
 
     var i = start;
     var lastParamIndex = start;
@@ -117,11 +119,13 @@ function parseFunction(js, start) {
     while (braceDepth >= 0) {
         var char = js.charAt(i);
 
-        if (char == '(') {
+        if (char == '(' && !inString) {
             braceDepth++;
-        } else if (char == ')') {
+        } else if (char == ')' && !inString) {
             braceDepth--;
-        } else if (char == ',' && braceDepth == 0) {
+        } else if (char == '"') {
+            inString = !inString;
+        } else if (char == ',' && braceDepth == 0 && !inString) {
             params.push(js.substring(lastParamIndex, i));
             lastParamIndex = i + 2;
         }
