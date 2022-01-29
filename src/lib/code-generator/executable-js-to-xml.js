@@ -63,6 +63,11 @@ function createBlock(type, inputs, shadow, list) {
     const values = inputs.values;
     const fields = inputs.fields;
     const statements = inputs.statements;
+    const mutation = inputs.mutation;
+
+    if (mutation) {
+        block.appendChild(mutation);
+    }
 
     if (values) {
         Object.keys(values).forEach((valueName) => {
@@ -83,6 +88,9 @@ function createBlock(type, inputs, shadow, list) {
             if (list) {
                 field.setAttribute('variabletype', 'list');
             }
+            if (inputs.broadcast) {
+                field.setAttribute('variabletype', 'broadcast_msg');
+            }
             field.textContent = fields[fieldName];
         });
     }
@@ -92,7 +100,7 @@ function createBlock(type, inputs, shadow, list) {
             const statement = document.createElement('statement');
             block.appendChild(statement);
             statement.setAttribute('name', statementName);
-            const statementBlock = statements[statementName]();
+            const statementBlock = statements[statementName];
             statement.appendChild(statementBlock);
         });
     }
@@ -284,7 +292,7 @@ function motion_yposition() {
 
 function motion_direction() {
     return createBlock('motion_direction', {
-        
+
     })
 }
 
@@ -339,7 +347,7 @@ function looks_costume(costume) {
 
 function looks_nextcostume() {
     return createBlock('looks_nextcostume', {
-        
+
     })
 }
 
@@ -361,7 +369,7 @@ function looks_backdrops(backdrop) {
 
 function looks_nextbackdrop() {
     return createBlock('looks_nextbackdrop', {
-        
+
     })
 }
 
@@ -405,19 +413,19 @@ function looks_seteffectto(effect, value) {
 
 function looks_cleargraphiceffects() {
     return createBlock('looks_cleargraphiceffects', {
-        
+
     })
 }
 
 function looks_show() {
     return createBlock('looks_show', {
-        
+
     })
 }
 
 function looks_hide() {
     return createBlock('looks_hide', {
-        
+
     })
 }
 
@@ -458,7 +466,7 @@ function numberNameBlock(type, number_name) {
 
 function looks_size() {
     return createBlock('looks_size', {
-        
+
     })
 }
 
@@ -488,7 +496,7 @@ function sound_sounds_menu(sound_menu) {
 
 function sound_stopallsounds() {
     return createBlock('sound_stopallsounds', {
-        
+
     })
 }
 
@@ -516,7 +524,7 @@ function sound_seteffectto(effect, value) {
 
 function sound_cleareffects() {
     return createBlock('sound_cleareffects', {
-        
+
     })
 }
 
@@ -538,13 +546,13 @@ function sound_setvolumeto(volume) {
 
 function sound_volume() {
     return createBlock('sound_volume', {
-        
+
     })
 }
 
 function event_whenflagclicked() {
     const block = createBlock('event_whenflagclicked', {
-        
+
     })
 
     topLevelBlocks.push(block);
@@ -564,7 +572,7 @@ function event_whenkeypressed(key_option) {
 
 function event_whenthisspriteclicked() {
     const block = createBlock('event_whenthisspriteclicked', {
-        
+
     })
 
     topLevelBlocks.push(block);
@@ -600,7 +608,8 @@ function event_whenbroadcastreceived(broadcast_option) {
     const block = createBlock('event_whenbroadcastreceived', {
         fields: {
             BROADCAST_OPTION: broadcast_option
-        }
+        },
+        broadcast: true
     })
 
     topLevelBlocks.push(block);
@@ -627,7 +636,8 @@ function event_broadcast_menu(broadcast_option) {
     return createBlock('event_broadcast_menu', {
         fields: {
             BROADCAST_OPTION: broadcast_option.innerText
-        }
+        },
+        broadcast: true
     })
 }
 
@@ -817,7 +827,7 @@ function sensing_askandwait(question) {
 
 function sensing_answer() {
     return createBlock('sensing_answer', {
-        
+
     })
 }
 
@@ -845,13 +855,13 @@ function sensing_mousedown() {
 
 function sensing_mousex() {
     return createBlock('sensing_mousex', {
-        
+
     })
 }
 
 function sensing_mousey() {
     return createBlock('sensing_mousey', {
-        
+
     })
 }
 
@@ -865,19 +875,19 @@ function sensing_setdragmode(drag_mode) {
 
 function sensing_loudness() {
     return createBlock('sensing_loudness', {
-        
+
     })
 }
 
 function sensing_timer() {
     return createBlock('sensing_timer', {
-        
+
     })
 }
 
 function sensing_resettimer() {
     return createBlock('sensing_resettimer', {
-        
+
     })
 }
 
@@ -910,13 +920,13 @@ function sensing_current(currentmenu) {
 
 function sensing_dayssince2000() {
     return createBlock('sensing_dayssince2000', {
-        
+
     })
 }
 
 function sensing_username() {
     return createBlock('sensing_username', {
-        
+
     })
 }
 
@@ -1214,4 +1224,87 @@ function data_hidelist(list) {
             LIST: list.innerText
         }
     }, false, true)
+}
+
+function procedures_call(name, ...params) {
+    const values = {};
+    for (let i = 0; i < params.length; i++) {
+        values[i] = params[i];
+    }
+    return createBlock('procedures_call', {
+        values: values,
+        mutation: createMutation(name, values)
+    })
+}
+
+function procedures_definition(custom_block) {
+    const block = createBlock('procedures_definition', {
+        statements: {
+            custom_block: custom_block
+        }
+    })
+
+    topLevelBlocks.push(block);
+    return block;
+}
+
+function procedures_prototype(name, ...params) {
+    const values = {};
+    for (let i = 0; i < params.length; i++) {
+        values[i] = params[i];
+    }
+    return createBlock('procedures_prototype', {
+        values: values,
+        mutation: createMutation(name, values)
+    }, true)
+}
+
+function createMutation(name, values) {
+    var argumentIds = '';
+    var argumentNames = '';
+    var argumentDefaults = '';
+
+    if (values) {
+        Object.keys(values).forEach((valueName) => {
+            if (values[valueName].getAttribute('type') == 'argument_reporter_boolean') {
+                name += ' %b';
+                argumentNames += '"boolean",';
+                argumentDefaults += '"false",';
+            } else {
+                name += ' %s';
+                argumentNames += '"number or text",';
+                argumentDefaults += '"",'
+            }
+            argumentIds += '"' + valueName + '",';
+        })
+    }
+
+    const mutation = document.createElement('mutation');
+    mutation.setAttribute('proccode', name);
+
+    mutation.setAttribute('argumentids',
+        '[' + argumentIds.substring(0, argumentIds.length - 1) + ']');
+    mutation.setAttribute('argumentnames',
+        '[' + argumentNames.substring(0, argumentNames.length - 1) + ']');
+    mutation.setAttribute('argumentdefaults',
+        '[' + argumentDefaults.substring(0, argumentDefaults.length - 1) + ']');
+    mutation.setAttribute('warp', false);
+
+    return mutation;
+}
+
+function argument_reporter_boolean(value) {
+    return createBlock('argument_reporter_boolean', {
+        fields: {
+            VALUE: value
+        }
+    }, true)
+}
+
+function argument_reporter_string_number(value) {
+    return createBlock('argument_reporter_string_number', {
+        fields: {
+            VALUE: value
+        }
+    }, true)
 }

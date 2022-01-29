@@ -16,8 +16,7 @@ export default function domToExecutableJavascript(xml) {
         if (name == 'block') {
             code += blockToExecutableCode(xmlChild);
             code += ';\n\n';
-        }
-        else if (name == 'variables') {
+        } else if (name == 'variables') {
             var variableCount = xmlChild.childNodes.length;
             for (var j = 0; j < variableCount; j++) {
                 var variable = xmlChild.childNodes[j];
@@ -28,7 +27,10 @@ export default function domToExecutableJavascript(xml) {
             }
         }
     }
-    return {variables: variables, code: code};
+    return {
+        variables: variables,
+        code: code
+    };
 }
 
 function handleChildren(blockChildNodes) {
@@ -59,6 +61,10 @@ function handleChildren(blockChildNodes) {
         } else if (name == 'next') {
             var nextBlock = childNode.childNodes[0];
             childrenBlockCode.next = '.next(\n' + blockToExecutableCode(nextBlock) + ', )';
+        } else if (name == 'mutation') {
+            var funcName = childNode.getAttribute('proccode')
+            childrenBlockCode.inputs['mutation'] = "'" +
+                funcName.substring(0, funcName.indexOf(' ')) + "'";
         }
     }
 

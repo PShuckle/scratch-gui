@@ -18,6 +18,150 @@ export default function readableToexecutableJs(js) {
         console.log(js);
     }
 
+    var functions = js.split('}\n\n');
+    console.log(functions);
+
+    for (let i = 0; i < functions.length; i++) {
+        var currentFunc = functions[i].trim();
+
+        currentFunc = handleRoundBrackets(currentFunc);
+
+        var functionHeader = currentFunc.substring(0, currentFunc.indexOf('('));
+
+        var functionBody = currentFunc.substring(currentFunc.indexOf('{') + 1, );
+
+        functionBody = handleCurlyBrackets(functionBody);
+
+        if (functionHeader == 'event_whenflagclicked' ||
+            functionHeader == 'event_whenthisspriteclicked' ||
+            functionHeader == 'control_start_as_clone') {
+
+            let replacementString = functionHeader + '()' +
+                '.next(\n' + functionBody + ')\n';
+
+            functions[i] = replacementString;
+        } else if (functionHeader == 'event_whenkeypressed' ||
+            functionHeader == 'event_whenbackdropswitchesto' ||
+            functionHeader == 'event_whenbroadcastreceived' ||
+            functionHeader == 'event_whengreaterthan') {
+            let conditions = functionBody.split(/CURL_CLOSE\)\s*?control_if/);
+
+            var executableCode = '';
+
+            for (let i = 0; i < conditions.length; i++) {
+                const func = conditions[i];
+                const keyMatch = func.match(/\'.*\'/);
+
+                if (keyMatch) {
+                    const key = keyMatch[0];
+
+                    console.log(func);
+
+                    const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('}')).replace('return', '');
+
+                    if (functionHeader == 'event_whengreaterthan') {
+                        const value = func.substring(func.indexOf(',') + 1, func.indexOf('), function'));
+                        executableCode += functionHeader +
+                            '(\n' + key + ',' + value + `).next(
+                                ` + functionText + ')\n';
+                    } else {
+                        executableCode += functionHeader +
+                            '(\n' + key + `).next(
+                                ` + functionText + ')\n';
+                    }
+                }
+            }
+
+            functions[i] = executableCode;
+        } else if (functionHeader) {
+            const paramsPattern = /\((?<params>.*?)\)/
+
+            const params = paramsPattern.exec(currentFunc);
+
+            const paramsAsStrings = "argument_reporter_string_number('" +
+                params.groups.params.split(', ').join("'), argument_reporter_string_number('") + "')";
+
+            let replacementString = 'procedures_definition(procedures_prototype(\'' + functionHeader +
+                '\', ' + paramsAsStrings + `)).next(
+                                ` + functionBody + ')\n';
+
+            functions[i] = replacementString;
+        }
+
+    }
+
+    var allFunctionsCode = functions.join('\n');
+
+    console.log(allFunctionsCode);
+
+    return {
+        code: allFunctionsCode,
+        variables: vars
+    };
+}
+
+String.prototype.endIndexOf = function (substring) {
+    var startIndex = this.indexOf(substring);
+    var endIndex = startIndex == -1 ? -1 : startIndex + substring.length + 1;
+    return endIndex;
+}
+
+String.prototype.replaceBetween = function (start, end, replacementSubstring) {
+    return this.substring(0, start) + replacementSubstring + this.substring(end);
+};
+
+function trimJsFile(js) {
+    js = js.substring(js.indexOf('}') + 1, js.lastIndexOf('}'));
+    return js;
+}
+
+function getLocalVariables(js) {
+    var constructorBody = js.substring(js.indexOf('this'), js.indexOf('}'));
+
+    var localVarPattern = /this\.(?<name>.*?) = (?<type>.*?);/g;
+
+    var variableList = {};
+
+    var variable;
+
+    while (variable = localVarPattern.exec(constructorBody)) {
+        variableList[variable.groups.name] = variable.groups.type;
+    }
+
+    return variableList;
+}
+
+/**
+ * check if a regex is an exact match of a string
+ * @param {*} string 
+ * @param {*} regex 
+ */
+function matchExact(string, regex) {
+    var match = string.match(regex);
+    return match && string === match[0];
+}
+
+function findEndOfStack(js, start) {
+    var braceDepth = 0;
+
+    var i = start;
+
+    while (braceDepth >= 0 && i < js.length) {
+        i++;
+        var char = js.charAt(i);
+
+        if (char == '(' || char == '{') {
+            braceDepth++;
+        } else if (char == ')' || char == '}') {
+            braceDepth--;
+        }
+
+    }
+
+    return i;
+}
+
+function handleRoundBrackets(js) {
     var innermostBracketPattern = /\([^\(\)]*\)/g;
 
     var innermostBrackets = js.match(innermostBracketPattern);
@@ -96,54 +240,47 @@ export default function readableToexecutableJs(js) {
     js = js.replaceAll('br_OPEN', '(');
     js = js.replaceAll('br_CLOSE', ')');
 
+    return js;
+}
+
+function handleCurlyBrackets(js) {
     var innermostCurlBracketPattern = /\{[^\{\}]*\}/g;
 
     var innermostCurlBrackets = js.match(innermostCurlBracketPattern);
 
-    console.log(js);
-
     while (innermostCurlBrackets) {
 
         const regexps = [
-            /control_repeat\((.| )*?\{[^\{\}]*?\}/,
-            /control_repeat_until\((.| )*?\{[^\{\}]*?\}/,
-            /control_while\((.| )*?\{[^\{\}]*?\}/,
-            /control_if\((.| )*?\{[^\{\}]*?\}/,
+            /control_repeat\([^\n]*?\{[^\{\}]*?\}/,
+            /control_repeat_until\([^\n]*?\{[^\{\}]*?\}/,
+            /control_while\([^\n]*?\{[^\{\}]*?\}/,
+            /control_if\([^\n]*?\{[^\{\}]*?\}/,
         ];
 
         regexps.forEach(regexp => {
             let matchingStatement = js.match(regexp);
 
-            console.log(matchingStatement);
-            console.log(regexp);
-
             if (matchingStatement) {
                 let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
                 let stringToReplace = ') ' + trimmedStatement;
-                let replacementString = ', function () curl_OPEN\n return ' + trimmedStatement.replaceAll('{\n', '').replaceAll('}', 'curl_CLOSE') + ')';
+                let replacementString = ', ' + trimmedStatement.replaceAll('{\n', '').replaceAll('}', '') + ')';
                 js = js.replace(stringToReplace, replacementString);
             }
         })
 
-        console.log(js);
-
-        let statementRegex = /control_forever\(\)(.|\s)*?\{[^\{\}]*\}/;
+        let statementRegex = /control_forever\(\)[^\n]*?\{[^\{\}]*\}/;
         let matchingStatement = js.match(statementRegex);
 
         if (matchingStatement) {
             let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
             let stringToReplace = ') ' + trimmedStatement;
-            let replacementString = 'function () curl_OPEN\n return ' + trimmedStatement.replaceAll('{\n', '').replaceAll('}', 'curl_CLOSE') + ')';
+            let replacementString = trimmedStatement.replaceAll('{\n', '').replaceAll('}', '') + ')';
             js = js.replace(stringToReplace, replacementString);
         }
 
-        console.log(js);
-
         // handle if-else blocks
-        statementRegex = /control_if\([^{}]*\)[^\n]*?else(.|\s)*?\{[^\{\}]*\}/;
+        statementRegex = /control_if\([^{}]*\)[^\n]*?else[^\n]*?\{[^\{\}]*\}/;
         matchingStatement = js.match(statementRegex);
-
-        console.log(js);
 
         if (matchingStatement) {
             let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
@@ -152,173 +289,19 @@ export default function readableToexecutableJs(js) {
             replacementString = replacementString.replace('control_if', 'control_if_else');
             js = js.replace(stringToReplace, replacementString);
 
-            console.log(js);
-
             stringToReplace = ') ' + trimmedStatement;
-            replacementString = ', function () curl_OPEN\n return ' +
-                trimmedStatement.replaceAll('{\n', '').replaceAll('}', 'curl_CLOSE') + ')';
+            replacementString = ', ' +
+                trimmedStatement.replaceAll('{\n', '').replaceAll('}', '') + ')';
 
             js = js.replace(stringToReplace, replacementString);
         }
-
-        console.log(js);
-
-        const functionHeaders = [
-            /event_whenflagclicked\(\)[^\n]*?\{[^\{\}]*\}/,
-            /event_whenthisspriteclicked\(\)[^\n]*?\{[^\{\}]*\}/,
-            /control_start_as_clone\(\)[^\n]*?\{[^\{\}]*\}/
-        ]
-
-        functionHeaders.forEach((regexp) => {
-            statementRegex = regexp;
-            matchingStatement = js.match(statementRegex);
-
-            if (matchingStatement) {
-                let func = matchingStatement[0];
-                let trimmedStatement = func.match(/\{[^\{\}]*\}/)[0];
-                let stringToReplace = func;
-                let replacementString = func.substring(0, matchingStatement[0].indexOf(')') + 1) +
-                    '.next(\n' + trimmedStatement.replaceAll('{\n', '').replaceAll('}', '') + ')';
-                js = js.replace(stringToReplace, replacementString);
-            }
-
-            console.log(js);
-        })
-
-        const eventDropdownHeaders = [
-            /event_whenkeypressed[^\n]*?\{[^\{\}]*\}/,
-            /event_whenbackdropswitchesto[^\n]*?\{[^\{\}]*\}/,
-            /event_whenbroadcastreceived[^\n]*?\{[^\{\}]*\}/
-        ]
-
-        eventDropdownHeaders.forEach(header => {
-            matchingStatement = js.match(header);
-
-            if (matchingStatement) {
-                let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
-
-                var functions = (trimmedStatement.split(/CURL_CLOSE\)\s*?control_if/));
-
-                for (let i = 0; i < functions.length; i++) {
-                    const func = functions[i];
-                    const keyMatch = func.match(/\'.*\'/);
-
-                    if (keyMatch) {
-                        const key = keyMatch[0];
-                        const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replace('return', '');
-
-                        js += matchingStatement[0].substring(0, matchingStatement[0].indexOf('(') + 1) +
-                            '\n' + key + `).next(
-                        ` + functionText + ')\n';
-                    }
-
-
-                }
-
-                js = js.replace(matchingStatement[0], '');
-            }
-        })
-
-        const greaterThanHeader = /event_whengreaterthan\(\)[^\n]*?\{[^\{\}]*\}/;
-        matchingStatement = js.match(greaterThanHeader);
-
-        if (matchingStatement) {
-            let trimmedStatement = matchingStatement[0].match(/\{[^\{\}]*\}/)[0];
-
-            var functions = (trimmedStatement.split(/CURL_CLOSE\)\s*?control_if/));
-
-            console.log(functions);
-
-            for (let i = 1; i < functions.length; i++) {
-                const func = functions[i];
-                const key = func.match(/\'.*\'/)[0];
-                const value = func.substring(func.indexOf(',') + 1, func.indexOf('), function'));
-
-                const functionText = func.substring(func.indexOf('return'), func.lastIndexOf('curl_CLOSE')).replace('return', '');
-
-                js += 'event_whengreaterthan(' +
-                    '\n' + key + ',' + value + `).next(
-                    ` + functionText + ')\n';
-            }
-
-            js = js.replace(matchingStatement[0], '');
-        }
-
-        console.log(js);
 
         innermostCurlBrackets = js.match(innermostCurlBracketPattern);
         console.log(innermostCurlBrackets);
     }
 
-
     js = js.replaceAll('curl_OPEN', '{');
     js = js.replaceAll('curl_CLOSE', '}');
 
-    console.log(js);
-
-    return {
-        code: js,
-        variables: vars
-    };
-}
-
-String.prototype.endIndexOf = function (substring) {
-    var startIndex = this.indexOf(substring);
-    var endIndex = startIndex == -1 ? -1 : startIndex + substring.length + 1;
-    return endIndex;
-}
-
-String.prototype.replaceBetween = function (start, end, replacementSubstring) {
-    return this.substring(0, start) + replacementSubstring + this.substring(end);
-};
-
-function trimJsFile(js) {
-    js = js.substring(js.indexOf('event_whenflagclicked'), js.lastIndexOf('}'));
     return js;
-}
-
-function getLocalVariables(js) {
-    var constructorBody = js.substring(js.indexOf('this'), js.indexOf('}'));
-
-    var localVarPattern = /this\.(?<name>.*?) = (?<type>.*?);/g;
-
-    var variableList = {};
-
-    var variable;
-
-    while (variable = localVarPattern.exec(constructorBody)) {
-        variableList[variable.groups.name] = variable.groups.type;
-    }
-
-    return variableList;
-}
-
-/**
- * check if a regex is an exact match of a string
- * @param {*} string 
- * @param {*} regex 
- */
-function matchExact(string, regex) {
-    var match = string.match(regex);
-    return match && string === match[0];
-}
-
-function findEndOfStack(js, start) {
-    var braceDepth = 0;
-
-    var i = start;
-
-    while (braceDepth >= 0 && i < js.length) {
-        i++;
-        var char = js.charAt(i);
-
-        if (char == '(' || char == '{') {
-            braceDepth++;
-        } else if (char == ')' || char == '}') {
-            braceDepth--;
-        }
-
-    }
-
-    return i;
 }

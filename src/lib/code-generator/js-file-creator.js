@@ -20,82 +20,98 @@ export default function createProject(files) {
                     'super(broadcaster);\nthis.' + variable + ' = ' + init + ';');
             } else {
                 globalVars[variable] = init;
-                
+
             }
         })
 
         var codeSnippets = generatedJsCode.split('\n\n');
+
+        var fileCodeBody = '';
 
         codeSnippets.forEach(snippet => {
             if (snippet.includes('event_whenflagclicked')) {
                 // remove first line of code from snippet 
                 // - this is the code representing the hat block
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCode = fileCode.replaceAll('event_whenflagclicked() {',
-                    'event_whenflagclicked() {\n' + trimmedSnippet + '\n');
+                fileCodeBody +=
+                    'event_whenflagclicked() {\n' + trimmedSnippet + '\n}\n\n';
             }
             if (snippet.includes('event_whenkeypressed')) {
-                var greaterThanMatch = snippet.match(/event_whenkeypressed\([^()]*\)/);
-                var key = greaterThanMatch[0];
-                key = key.substring(key.indexOf('(') + 1, key.indexOf(')'));
+                var keyPressPattern = /(?:event_whenkeypressed\()(?<keyname>[^()]*)(?:\))/g;
+                var key = keyPressPattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCode = fileCode.replaceAll('event_whenkeypressed(key) {',
+                fileCodeBody +=
                     `event_whenkeypressed(key) {
-                        if ((key == ` + key + `)) {
-                            ` + trimmedSnippet + `\n}`);
+                        if ((key == ` + key.groups.keyname + `)) {
+                            ` + trimmedSnippet + `\n}\n}\n\n`;
             }
             if (snippet.includes('event_whenthisspriteclicked')) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCode = fileCode.replaceAll('event_whenthisspriteclicked() {',
-                    'event_whenthisspriteclicked() {\n' + trimmedSnippet + '\n');
+                fileCodeBody +=
+                    'event_whenthisspriteclicked() {\n' + trimmedSnippet + '\n}\n\n';
             }
 
             if (snippet.includes('event_whenbackdropswitchesto')) {
-                var greaterThanMatch = snippet.match(/event_whenbackdropswitchesto\([^()]*\)/);
-                var backdrop = greaterThanMatch[0];
-                backdrop = backdrop.substring(backdrop.indexOf('(') + 1, backdrop.indexOf(')'));
+                var backdropPattern = /(?:event_whenbackdropswitchesto\()(?<backdropname>[^()]*)(?:\))/;
+                var backdrop = backdropPattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCode = fileCode.replaceAll('event_whenbackdropswitchesto(backdrop) {',
-                    `event_whenkeypressed(backdrop) {
-                    if ((backdrop == ` + backdrop + `)) {
-                        ` + trimmedSnippet + `\n}`);
+                fileCodeBody +=
+                    `event_whenbackdropswitchesto(backdrop) {
+                        if ((backdrop == ` + backdrop.groups.backdropname + `)) {
+                            ` + trimmedSnippet + `\n}\n}\n\n`;
             }
 
             if (snippet.includes('event_whengreaterthan')) {
-                var greaterThanMatch = snippet.match(/event_whengreaterthan\((.|\s)*?\);/);
-                var params = greaterThanMatch[0];
-                var whengreaterthanmenu = params.substring(params.indexOf('(') + 1, params.indexOf(','));
-                var value = params.substring(params.indexOf(',') + 1, params.lastIndexOf(')'));
+                var greaterThanPattern = /(?:event_whengreaterthan\()(?<whengreaterthanmenu>[^,]*?), (?<value>[^\n]*?)(?:\);)/;
+                var greaterThan = greaterThanPattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCode = fileCode.replaceAll('event_whengreaterthan() {',
-                    `event_whengreaterthan() {
-                    if ((` + whengreaterthanmenu + ` > ` + value + `)) {
-                        ` + trimmedSnippet + `\n}`);
+                fileCodeBody += `event_whengreaterthan() {
+                    if ((` + greaterThan.groups.whengreaterthanmenu + ` > ` +
+                    greaterThan.groups.value + `)) {
+                        ` + trimmedSnippet + `\n}\n}\n\n`;
             }
 
             if (snippet.includes('event_whenbroadcastreceived')) {
-                var messageMatch = snippet.match(/event_whenbroadcastreceived\([^()]*\)/);
-                var message = messageMatch[0];
-                message = message.substring(message.indexOf('(') + 1, message.indexOf(')'));
+                var messagePattern = /(?:event_whenbroadcastreceived\()(?<messagetext>[^()]*)(?:\))/;
+                var message = messagePattern.exec(snippet);
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCode = fileCode.replaceAll('event_whenbroadcastreceived(message) {',
+                fileCodeBody +=
                     `event_whenbroadcastreceived(message) {
-                        if ((message == ` + message + `)) {
-                            ` + trimmedSnippet + `\n}`);
+                        if ((message == ` + message.groups.messagetext + `)) {
+                            ` + trimmedSnippet + `\n}\n}\n\n`;
             }
 
             if (snippet.includes('control_start_as_clone')) {
-                // remove first line of code from snippet 
-                // - this is the code representing the hat block
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
-                fileCode = fileCode.replaceAll('control_start_as_clone() {',
-                    'control_start_as_clone() {\n' + trimmedSnippet + '\n');
+
+                fileCodeBody +=
+                    'control_start_as_clone() {\n' + trimmedSnippet + '\n}\n\n';
+            }
+
+            if (snippet.includes('procedures_definition')) {
+                var functionNamePattern = /(?:procedures_prototype\(\')(?<funcName>.*?)(?:\')/
+                var functionParamPattern = /(?:argument_reporter_.*?\(\')(?<name>.*?)(?:\'\))/g
+                var func = functionNamePattern.exec(snippet);
+                var params = '';
+                var param;
+                while (param = functionParamPattern.exec(snippet)) {
+                    params += param.groups.name + ', ';
+                }
+
+                var trimmedSnippet = snippet.substring(snippet.indexOf('});\n') + 4);
+
+                fileCodeBody += func.groups.funcName + `(` +
+                    params.substring(0, params.lastIndexOf(',')) + `) {\n` + trimmedSnippet + '\n}\n\n'
+
+
             }
         })
+
+        fileCode = fileCode.replace('CODEBODY', fileCodeBody);
 
         var fileName = name + '.js';
 
@@ -129,33 +145,7 @@ function createFileSkeleton(name) {
             super(broadcaster);
         }
 
-        event_whenflagclicked() {
-
-        }
-
-        event_whenkeypressed(key) {
-
-        }
-
-        event_whenthisspriteclicked() {
-
-        }
-
-        event_whenbackdropswitchesto(backdrop) {
-
-        }
-
-        event_whengreaterthan() {
-
-        }
-
-        event_whenbroadcastreceived(message) {
-
-        }
-
-        control_start_as_clone() {
-
-        }
+        CODEBODY
     }
 
     export default ` + name + `;`;
