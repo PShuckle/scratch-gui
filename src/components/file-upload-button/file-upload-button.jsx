@@ -24,7 +24,7 @@ class FileUploadButton extends React.Component {
 
     if (file.name == 'project.js' || file.name == 'broadcaster.js' || file.name == 'sprite.js') {
       // increase the delay if there are bugs!
-      setTimeout(this.createBlocksFromFile.bind(this, files, i+1), 5);
+      setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 5);
       return;
     }
 
@@ -33,17 +33,19 @@ class FileUploadButton extends React.Component {
     reader.readAsText(file);
 
     if (file.name == 'global-variable-manager.js') {
+      reader.onload = function (e) {
+        this.props.generator.readGlobalVariables(reader.result);
+      }
 
+      reader.onload = reader.onload.bind(this);
     }
     else {
       reader.onload = function (e) {
-        console.log(e);
         const targets = this.props.vm.runtime.targets;
         for (let j = 0; j < targets.length; j++) {
           var target = targets[j];
           if (target.sprite.name + '.js' == file.name) {
             console.log(file.name);
-            console.log(reader.result);
             this.props.vm.setEditingTarget(target.id);
             this.props.generator.javascriptToDom(reader.result);
             console.log(target);
@@ -55,7 +57,7 @@ class FileUploadButton extends React.Component {
       reader.onload = reader.onload.bind(this);
     }
 
-    setTimeout(this.createBlocksFromFile.bind(this, files, i+1), 5);
+    setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 5);
     return;
   }
 

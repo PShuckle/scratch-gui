@@ -3,6 +3,7 @@ import javascriptToXml from './executable-js-to-xml';
 import executableToReadable from './executable-to-readable-js';
 import readableToexecutable from './readable-to-executable-js';
 import createJsFiles from './js-file-creator.js';
+import globalVariablesToDom from './global-variable-loader.js';
 
 class Generator {
     constructor(ScratchBlocks, vm) {
@@ -34,8 +35,13 @@ class Generator {
     javascriptToDom(javascript) {
         const executableJs = readableToexecutable(javascript);
         const xml = javascriptToXml(executableJs);
-        this.ScratchBlocks.Xml.clearWorkspaceAndLoadFromXml(xml, this.workspace);
+        this.ScratchBlocks.Xml.domToWorkspace(xml, this.workspace);
         this.workspace.cleanUp();
+    }
+
+    readGlobalVariables(javascript) {
+        const xml = globalVariablesToDom(javascript);
+        this.ScratchBlocks.Xml.domToWorkspace(xml, this.workspace);
     }
 }
 
