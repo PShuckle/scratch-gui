@@ -42,14 +42,21 @@ class FileUploadButton extends React.Component {
     else {
       reader.onload = function (e) {
         const targets = this.props.vm.runtime.targets;
+        var targetFound = false;
         for (let j = 0; j < targets.length; j++) {
           var target = targets[j];
           if (target.sprite.name + '.js' == file.name) {
+            targetFound = true;
             console.log(file.name);
             this.props.vm.setEditingTarget(target.id);
             this.props.generator.javascriptToDom(reader.result);
             console.log(target);
           }
+        }
+
+        if (!targetFound) {
+          this.props.vm.setEditingTarget(this.props.vm.runtime.getTargetForStage());
+          this.props.generator.javascriptToDom(reader.result);
         }
         // this.domToWorkspace(this.javascriptToDom(reader.result));
       };

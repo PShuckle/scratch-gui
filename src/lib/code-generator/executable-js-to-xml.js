@@ -94,11 +94,13 @@ function createBlock(type, inputs, shadow, list) {
 
     if (statements) {
         Object.keys(statements).forEach((statementName) => {
-            const statement = document.createElement('statement');
-            block.appendChild(statement);
-            statement.setAttribute('name', statementName);
-            const statementBlock = statements[statementName];
-            statement.appendChild(statementBlock);
+            if (statements[statementName]) {
+                const statement = document.createElement('statement');
+                block.appendChild(statement);
+                statement.setAttribute('name', statementName);
+                const statementBlock = statements[statementName];
+                statement.appendChild(statementBlock);
+            }
         });
     }
 
@@ -737,7 +739,7 @@ function control_stop(stop_option) {
 
 function createControlStopMutation(stop_option) {
     const mutation = document.createElement('mutation');
-    
+
     if (stop_option == 'all' || stop_option || 'this script') {
         mutation.setAttribute('hasnext', false);
     } else {
@@ -745,7 +747,7 @@ function createControlStopMutation(stop_option) {
     }
 
     return mutation;
-    
+
 }
 
 function control_start_as_clone() {

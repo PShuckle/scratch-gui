@@ -48,12 +48,11 @@ function handleChildren(blockChildNodes) {
         } else if (name == 'field') {
             var fieldValue = childNode.textContent;
 
-            if (isNaN(fieldValue)) {
+            if (isNaN(fieldValue) || !fieldValue.trim()) {
                 fieldValue = '"' + fieldValue + '"';
             }
 
             childrenBlockCode.inputs[childNode.getAttribute('name')] = fieldValue;
-            var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
         } else if (name == 'statement') {
             var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
             childrenBlockCode.inputs[childNode.getAttribute('name')] = '{\n' +

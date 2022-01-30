@@ -129,10 +129,10 @@ export default function createProject(files) {
                     params += param.groups.name + ', ';
                 }
 
-                var trimmedSnippet = snippet.substring(snippet.indexOf('});\n') + 4);
+                var trimmedSnippet = snippet.substring(snippet.indexOf('});') + 3);
 
                 procedures += func.groups.funcName + `(` +
-                    params.substring(0, params.lastIndexOf(',')) + `) {\n` + trimmedSnippet + '\n}\n\n'
+                    params.substring(0, params.lastIndexOf(',')) + `) {` + trimmedSnippet + '\n}\n\n'
 
 
             }

@@ -57,7 +57,7 @@ export default function readableToexecutableJs(js) {
 
             for (let i = 0; i < conditions.length; i++) {
                 const func = conditions[i];
-                const keyMatch = func.match(/\'.*\'/);
+                const keyMatch = func.match(/\".*\"/);
 
                 if (keyMatch) {
                     const key = keyMatch[0];
@@ -177,7 +177,7 @@ function handleRoundBrackets(js) {
         innermostBrackets.forEach(contents => {
             var trimmedContents = contents.substring(1, contents.length - 1);
             if (matchExact(contents, /\(-?(\d|\.)+\)/)) { // math_number
-                js = js.replace(contents, 'math_numberbr_OPEN' + trimmedContents + 'br_CLOSE');
+                js = js.replace(contents, 'math_numberbr_OPEN' + trimmedContents.replace('-', 'neg_number') + 'br_CLOSE');
             } else if (matchExact(contents, /\(".*"\)/)) { // text
                 js = js.replace(contents, 'br_OPENtextbr_OPEN' + trimmedContents + 'br_CLOSEbr_CLOSE');
             } else if (js.includes('for ' + contents)) { // control_repeat (for loop)
@@ -246,6 +246,7 @@ function handleRoundBrackets(js) {
 
     js = js.replaceAll('br_OPEN', '(');
     js = js.replaceAll('br_CLOSE', ')');
+    js = js.replaceAll('neg_number', '-');
 
     return js;
 }

@@ -18,9 +18,11 @@ export default function executableToReadableJs(js) {
         /math_angle\(/g, /math_integer\(/g, /text\(/g
     ];
 
+    console.log(js);
+
     basicInputBlocks.forEach(block => {
         js = replaceFunctionWith(js, block, (params) => {
-            return '(' + params[0] + ')';
+            return '(' + (params[0] ? params[0] : '""') + ')';
         });
     })
 
@@ -50,27 +52,27 @@ export default function executableToReadableJs(js) {
     js = replaceFunctionWith(js, /control_repeat\(/g, (params) => {
         var varName = variableNameGenerator.generateCounterVariable();
         return 'for (let ' + varName + ' = 0; ' + varName + ' < ' + params[0] + '; ' +
-            varName + '++) ' + params[1];
+            varName + '++) ' + (params[1] ? params[1] : '{\n}');
     });
 
     js = replaceFunctionWith(js, /control_forever\(/g, (params) => {
-        return 'while (true) ' + params[0];
+        return 'while (true) ' + (params[0] ? params[0] : '{\n}');
     });
 
     js = replaceFunctionWith(js, /control_if\(/g, (params) => {
-        return 'if (' + params[0] + ') ' + params[1];
+        return 'if (' + params[0] + ') ' + (params[1] ? params[1] : '{\n}');
     });
 
     js = replaceFunctionWith(js, /control_if_else\(/g, (params) => {
-        return 'if (' + params[0] + ') ' + params[1] + ' else ' + params[2];
+        return 'if (' + params[0] + ') ' + (params[1] ? params[1] : '{\n}') + ' else ' +  (params[2] ? params[2] : '{\n}');
     });
 
     js = replaceFunctionWith(js, /control_repeat_until\(/g, (params) => {
-        return 'while ((!' + params[0] + ')) ' + params[1];
+        return 'while ((!' + params[0] + ')) ' +  (params[1] ? params[1] : '{\n}');
     });
 
     js = replaceFunctionWith(js, /control_while\(/g, (params) => {
-        return 'while (' + params[0] + ') ' + params[1];
+        return 'while (' + params[0] + ') ' +  (params[1] ? params[1] : '{\n}');
     });
 
     // js = replaceFunctionWith(js, /event_whenflagclicked\(\).next\(/, (params) => {
@@ -86,7 +88,6 @@ export default function executableToReadableJs(js) {
     });
 
     js = js.replaceAll(', )', ')');
-    console.log(js);
 
     return js;
 }
@@ -99,7 +100,6 @@ function replaceFunctionWith(js, func, replacementStringBuilder) {
             const functionData = parseFunction(js, js.endIndexOf(match));
 
             js = js.replaceBetween(js.indexOf(match), functionData.endIndex, replacementStringBuilder(functionData.params, match));
-            console.log(js);
         });
     }
 
