@@ -9,8 +9,6 @@ class Generator {
     constructor(ScratchBlocks, vm) {
         this.ScratchBlocks = ScratchBlocks;
         this.vm = vm;
-        console.log(this.vm);
-        console.log(this.ScratchBlocks);
         this.workspace = this.ScratchBlocks.getMainWorkspace();
     }
 
@@ -21,12 +19,20 @@ class Generator {
             this.vm.setEditingTarget(target.id);
 
             const xml = this.ScratchBlocks.Xml.workspaceToDom(this.workspace);
-            const parsedXml = xmlToJavascript(xml);
+            const xmlJavascriptConverter = new xmlToJavascript();
+            const parsedXml = xmlJavascriptConverter.generateExecutableJs(xml);
             const js = parsedXml.code;
             const variables = parsedXml.variables;
+            const params = parsedXml.parameters;
+            const functions = parsedXml.functions;
             const readableJs = executableToReadable(js);
-            
-            files[name] = {variables: variables, code: readableJs};
+
+            files[name] = {
+                variables: variables,
+                code: readableJs,
+                params: params,
+                functions: functions
+            };
         })
 
         createJsFiles(files);
@@ -35,7 +41,7 @@ class Generator {
     javascriptToDom(javascript) {
         const executableJs = readableToexecutable(javascript);
         const xml = javascriptToXml(executableJs);
-        this.ScratchBlocks.Xml.domToWorkspace(xml, this.workspace);
+        this.ScratchBlocks.Xml.clearWorkspaceAndLoadFromXml(xml, this.workspace);
         this.workspace.cleanUp();
     }
 

@@ -2,6 +2,9 @@ export default function globalVariablesToDom(js) {
     var pattern = /this.variables = {(?<variables>(.|\s)*?)}/
     var constructorBody = pattern.exec(js);
 
+    var symbolLookupPattern = /this.symbolNameLookup = (?<symbolNameLookup>{(.|\s)*?})/;
+    var symbolNameLookup = JSON.parse(symbolLookupPattern.exec(js).groups.symbolNameLookup);
+
     var localVarPattern = /(?<name>.*?): (?<type>.*?),/g;
 
     var variableList = {};
@@ -9,7 +12,8 @@ export default function globalVariablesToDom(js) {
     var variable;
 
     while (variable = localVarPattern.exec(constructorBody.groups.variables)) {
-        variableList[variable.groups.name] = variable.groups.type;
+        var scratchVarName = symbolNameLookup[variable.groups.name];
+        variableList[scratchVarName] = variable.groups.type;
     }
 
     const xml = createVariableXml(variableList);
@@ -28,6 +32,8 @@ function createVariableXml(variables) {
         variableTag.setAttribute('type', '');
         if (variables[variable] == '[]') {
             variableTag.setAttribute('type', 'list');
+        } else if (variables[variable] != '0') {
+            variableTag.setAttribute('type', 'broadcast_msg');
         }
         variableTag.textContent = variable;
         variablesTag.appendChild(variableTag);

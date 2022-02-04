@@ -13,81 +13,13 @@ export default function executableToReadableJs(js) {
 
     const variableNameGenerator = new VariableNameGenerator();
 
-    const basicInputBlocks = [
-        /math_number\(/g, /math_whole_number\(/g, /math_positive_number\(/g,
-        /math_angle\(/g, /math_integer\(/g, /text\(/g
-    ];
-
-    console.log(js);
-
-    basicInputBlocks.forEach(block => {
-        js = replaceFunctionWith(js, block, (params) => {
-            return '(' + (params[0] ? params[0] : '""') + ')';
-        });
-    })
-
-    const twoParamOperators = {
-        operator_add: ' \+ ',
-        operator_subtract: ' \- ',
-        operator_multiply: ' \* ',
-        operator_divide: ' \/ ',
-        operator_gt: ' \> ',
-        operator_lt: ' \< ',
-        operator_equals: ' \=\= ',
-        operator_and: ' \&\& ',
-        operator_or: ' \|\| ',
-        operator_mod: ' \% '
-    }
-
-    Object.keys(twoParamOperators).forEach(operator => {
-        js = replaceFunctionWith(js, new RegExp(operator + '\\(', 'g'), (params) => {
-            return '(' + params[0] + twoParamOperators[operator] + params[1] + ')';
-        });
-    });
-
-    js = replaceFunctionWith(js, /operator_not\(/g, (params) => {
-        return '(!' + params[0] + ')';
-    });
-
-    js = replaceFunctionWith(js, /control_repeat\(/g, (params) => {
-        var varName = variableNameGenerator.generateCounterVariable();
-        return 'for (let ' + varName + ' = 0; ' + varName + ' < ' + params[0] + '; ' +
-            varName + '++) ' + (params[1] ? params[1] : '{\n}');
-    });
-
-    js = replaceFunctionWith(js, /control_forever\(/g, (params) => {
-        return 'while (true) ' + (params[0] ? params[0] : '{\n}');
-    });
-
-    js = replaceFunctionWith(js, /control_if\(/g, (params) => {
-        return 'if (' + params[0] + ') ' + (params[1] ? params[1] : '{\n}');
-    });
-
-    js = replaceFunctionWith(js, /control_if_else\(/g, (params) => {
-        return 'if (' + params[0] + ') ' + (params[1] ? params[1] : '{\n}') + ' else ' +  (params[2] ? params[2] : '{\n}');
-    });
-
-    js = replaceFunctionWith(js, /control_repeat_until\(/g, (params) => {
-        return 'while ((!' + params[0] + ')) ' +  (params[1] ? params[1] : '{\n}');
-    });
-
-    js = replaceFunctionWith(js, /control_while\(/g, (params) => {
-        return 'while (' + params[0] + ') ' +  (params[1] ? params[1] : '{\n}');
-    });
-
-    // js = replaceFunctionWith(js, /event_whenflagclicked\(\).next\(/, (params) => {
-    //     return 'event_whenflagclicked () {' + params[0] + '\n}';
-    // });
-
-    // js = replaceFunctionWith(js, /event_whenkeypressed\([^()]*\).next\(/, (params, match) => {
-    //     return match.replace('.next(', '') + ' {' + params[0] + '}';
-    // });
-
     js = replaceFunctionWith(js, /.next\(/g, (params) => {
         return ';' + params[0];
     });
 
     js = js.replaceAll(', )', ')');
+
+    console.log(js);
 
     return js;
 }

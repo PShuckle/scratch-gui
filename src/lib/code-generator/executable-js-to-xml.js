@@ -34,10 +34,13 @@ function addVariables(xml, variables) {
 
     Object.keys(variables).forEach(variable => {
         var variableTag = document.createElement('variable');
-        variableTag.setAttribute('islocal', 'true');
+        variableTag.setAttribute('islocal', variables[variable].isLocal);
         variableTag.setAttribute('type', '');
-        if (variables[variable] == '[]') {
+        if (variables[variable].type == '[]') {
             variableTag.setAttribute('type', 'list');
+        } else if (variables[variable].type != '0') {
+            variableTag.setAttribute('type', 'broadcast_msg');
+            variableTag.setAttribute('id', 'broadcastMsgId-' + variables[variable].type);
         }
         variableTag.textContent = variable;
         variablesTag.appendChild(variableTag);
@@ -98,7 +101,7 @@ function createBlock(type, inputs, shadow, list) {
                 const statement = document.createElement('statement');
                 block.appendChild(statement);
                 statement.setAttribute('name', statementName);
-                const statementBlock = statements[statementName];
+                const statementBlock = statements[statementName]();
                 statement.appendChild(statementBlock);
             }
         });
@@ -115,8 +118,16 @@ function math_number(num) {
     }, true);
 }
 
+function math_whole_number(num) {
+    return createBlock('math_whole_number', {
+        fields: {
+            NUM: num
+        }
+    }, true);
+}
+
 function math_positive_number(num) {
-    return createBlock('math_number', {
+    return createBlock('math_positive_number', {
         fields: {
             NUM: num
         }
@@ -125,6 +136,14 @@ function math_positive_number(num) {
 
 function math_integer(num) {
     return createBlock('math_integer', {
+        fields: {
+            NUM: num
+        }
+    }, true);
+}
+
+function math_angle(num) {
+    return createBlock('math_angle', {
         fields: {
             NUM: num
         }
@@ -183,7 +202,7 @@ function motion_goto(to) {
 function motion_goto_menu(to) {
     return createBlock('motion_goto_menu', {
         fields: {
-            TO: to.innerText
+            TO: to
         }
     }, true);
 }
@@ -210,7 +229,7 @@ function motion_glideto(secs, to) {
 function motion_glideto_menu(to) {
     return createBlock('motion_glideto_menu', {
         fields: {
-            TO: to.innerText
+            TO: to
         }
     }, true);
 }
@@ -234,7 +253,7 @@ function motion_pointtowards(towards) {
 function motion_pointtowards_menu(towards) {
     return createBlock('motion_pointtowards_menu', {
         fields: {
-            TOWARDS: towards.innerText
+            TOWARDS: towards
         }
     }, true);
 }
@@ -280,7 +299,7 @@ function motion_ifonedgebounce() {
 function motion_setrotationstyle(style) {
     return createBlock('motion_setrotationstyle', {
         fields: {
-            STYLE: style.innerText
+            STYLE: style
         }
     })
 }
@@ -347,7 +366,7 @@ function looks_switchcostumeto(costume) {
 function looks_costume(costume) {
     return createBlock('looks_costume', {
         fields: {
-            COSTUME: costume.innerText
+            COSTUME: costume
         }
     }, true)
 }
@@ -369,7 +388,7 @@ function looks_switchbackdropto(backdrop) {
 function looks_backdrops(backdrop) {
     return createBlock('looks_backdrops', {
         fields: {
-            BACKDROP: backdrop.innerText
+            BACKDROP: backdrop
         }
     }, true)
 }
@@ -439,7 +458,7 @@ function looks_hide() {
 function looks_gotofrontback(front_back) {
     return createBlock('looks_gotofrontback', {
         fields: {
-            FRONT_BACK: front_back.innerText
+            FRONT_BACK: front_back
         }
     })
 }
@@ -466,7 +485,7 @@ function looks_backdropnumbername(number_name) {
 function numberNameBlock(type, number_name) {
     return createBlock(type, {
         fields: {
-            NUMBER_NAME: number_name.innerText
+            NUMBER_NAME: number_name
         }
     })
 }
@@ -496,7 +515,7 @@ function sound_play(sound_menu) {
 function sound_sounds_menu(sound_menu) {
     return createBlock('sound_sounds_menu', {
         fields: {
-            SOUND_MENU: sound_menu.innerText
+            SOUND_MENU: sound_menu
         }
     }, true)
 }
@@ -642,10 +661,10 @@ function event_broadcastandwait(broadcast_input) {
 function event_broadcast_menu(broadcast_option) {
     return createBlock('event_broadcast_menu', {
         fields: {
-            BROADCAST_OPTION: broadcast_option.innerText
+            BROADCAST_OPTION: broadcast_option
         },
         broadcast: true
-    })
+    }, true)
 }
 
 function control_wait(duration) {
@@ -731,7 +750,7 @@ function control_while(condition, substack) {
 function control_stop(stop_option) {
     return createBlock('control_stop', {
         fields: {
-            STOP_OPTION: stop_option.innerText
+            STOP_OPTION: stop_option
         },
         mutation: createControlStopMutation(stop_option)
     })
@@ -770,7 +789,7 @@ function control_create_clone_of(clone_option) {
 function control_create_clone_of_menu(clone_option) {
     return createBlock('control_create_clone_of_menu', {
         fields: {
-            CLONE_OPTION: clone_option.innerText
+            CLONE_OPTION: clone_option
         }
     }, true)
 }
@@ -792,7 +811,7 @@ function sensing_touchingobject(touchingobjectmenu) {
 function sensing_touchingobjectmenu(touchingobjectmenu) {
     return createBlock('sensing_touchingobjectmenu', {
         fields: {
-            TOUCHINGOBJECTMENU: touchingobjectmenu.innerText
+            TOUCHINGOBJECTMENU: touchingobjectmenu
         }
     }, true)
 }
@@ -817,7 +836,7 @@ function sensing_coloristouchingcolor(color, color2) {
 function colour_picker(colour) {
     return createBlock('colour_picker', {
         fields: {
-            COLOUR: colour.innerText
+            COLOUR: colour
         }
     }, true)
 }
@@ -833,7 +852,7 @@ function sensing_distanceto(distancetomenu) {
 function sensing_distancetomenu(distancetomenu) {
     return createBlock('sensing_distancetomenu', {
         fields: {
-            DISTANCETOMENU: distancetomenu.innerText
+            DISTANCETOMENU: distancetomenu
         }
     }, true)
 }
@@ -863,7 +882,7 @@ function sensing_keypressed(key_option) {
 function sensing_keyoptions(key_option) {
     return createBlock('sensing_keyoptions', {
         fields: {
-            KEY_OPTION: key_option.innerText
+            KEY_OPTION: key_option
         }
     })
 }
@@ -889,7 +908,7 @@ function sensing_mousey() {
 function sensing_setdragmode(drag_mode) {
     return createBlock('sensing_setdragmode', {
         fields: {
-            DRAG_MODE: drag_mode.innerText
+            DRAG_MODE: drag_mode
         }
     })
 }
@@ -926,7 +945,7 @@ function sensing_of(property, object) {
 function sensing_of_object_menu(object) {
     return createBlock('sensing_of_object_menu', {
         fields: {
-            OBJECT: object.innerText
+            OBJECT: object
         }
     })
 }
@@ -934,7 +953,7 @@ function sensing_of_object_menu(object) {
 function sensing_current(currentmenu) {
     return createBlock('sensing_current', {
         fields: {
-            CURRENTMENU: currentmenu.innerText
+            CURRENTMENU: currentmenu
         }
     })
 }
@@ -1105,7 +1124,7 @@ function data_changevariableby(variable, value) {
 function data_showvariable(variable) {
     return createBlock('data_showvariable', {
         fields: {
-            VARIABLE: variable.innerText
+            VARIABLE: variable
         }
     })
 }
@@ -1113,7 +1132,7 @@ function data_showvariable(variable) {
 function data_hidevariable(variable) {
     return createBlock('data_hidevariable', {
         fields: {
-            VARIABLE: variable.innerText
+            VARIABLE: variable
         }
     })
 }
@@ -1121,7 +1140,7 @@ function data_hidevariable(variable) {
 function data_variable(variable) {
     return createBlock('data_variable', {
         fields: {
-            VARIABLE: variable.innerText
+            VARIABLE: variable
         }
     })
 }
@@ -1129,7 +1148,7 @@ function data_variable(variable) {
 function data_listcontents(list) {
     return createBlock('data_listcontents', {
         fields: {
-            LIST: list.innerText
+            LIST: list
         }
     }, false, true)
 }
@@ -1159,7 +1178,7 @@ function data_deleteoflist(list, index) {
 function data_deletealloflist(list) {
     return createBlock('data_deletealloflist', {
         fields: {
-            LIST: list.innerText
+            LIST: list
         }
     }, false, true)
 }
@@ -1213,7 +1232,7 @@ function data_itemnumoflist(list, item) {
 function data_lengthoflist(list) {
     return createBlock('data_lengthoflist', {
         fields: {
-            LIST: list.innerText
+            LIST: list
         }
     }, false, true)
 }
@@ -1232,7 +1251,7 @@ function data_listcontainsitem(list, item) {
 function data_showlist(list) {
     return createBlock('data_showlist', {
         fields: {
-            LIST: list.innerText
+            LIST: list
         }
     }, false, true)
 }
@@ -1240,7 +1259,7 @@ function data_showlist(list) {
 function data_hidelist(list) {
     return createBlock('data_hidelist', {
         fields: {
-            LIST: list.innerText
+            LIST: list
         }
     }, false, true)
 }
@@ -1286,11 +1305,9 @@ function createMutation(name, values) {
     if (values) {
         Object.keys(values).forEach((valueName) => {
             if (values[valueName].getAttribute('type') == 'argument_reporter_boolean') {
-                name += ' %b';
                 argumentNames += '"boolean",';
                 argumentDefaults += '"false",';
             } else {
-                name += ' %s';
                 argumentNames += '"number or text",';
                 argumentDefaults += '"",'
             }
@@ -1326,4 +1343,159 @@ function argument_reporter_string_number(value) {
             VALUE: value
         }
     }, true)
+}
+
+function music_playDrumForBeats(drum, beats) {
+    return createBlock('music_playDrumForBeats', {
+        values: {
+            DRUM: drum,
+            BEATS: beats
+        }
+    })
+}
+
+function music_menu_DRUM(drum) {
+    return createBlock('music_menu_DRUM', {
+        fields: {
+            DRUM: drum,
+        }
+    }, true)
+}
+
+function music_restForBeats(beats) {
+    return createBlock('music_restForBeats', {
+        values: {
+            BEATS: beats
+        }
+    })
+}
+
+function music_playNoteForBeats(note, beats) {
+    return createBlock('music_playNoteForBeats', {
+        values: {
+            NOTE: note,
+            BEATS: beats
+        }
+    })
+}
+
+function note(note) {
+    return createBlock('note', {
+        fields: {
+            NOTE: note
+        }
+    }, true)
+}
+
+function music_setInstrument(instrument) {
+    return createBlock('music_setInstrument', {
+        values: {
+            INSTRUMENT: instrument
+        }
+    })
+}
+
+function music_menu_INSTRUMENT(instrument) {
+    return createBlock('music_menu_INSTRUMENT', {
+        fields: {
+            INSTRUMENT: instrument
+        }
+    }, true)
+}
+
+function music_setTempo(tempo) {
+    return createBlock('music_setTempo', {
+        values: {
+            TEMPO: tempo
+        }
+    })
+}
+
+function music_changeTempo(tempo) {
+    return createBlock('music_changeTempo', {
+        values: {
+            TEMPO: tempo
+        }
+    })
+}
+
+function music_getTempo(tempo) {
+    return createBlock('music_getTempo', {
+        
+    })
+}
+
+
+function pen_clear() {
+    return createBlock('pen_clear',{
+
+    })
+}
+
+function pen_stamp() {
+    return createBlock('pen_stamp',{
+        
+    })
+}
+
+function pen_penDown() {
+    return createBlock('pen_penDown',{
+        
+    })
+}
+
+function pen_penUp() {
+    return createBlock('pen_penUp',{
+        
+    })
+}
+
+function pen_setPenColorToColor(color) {
+    return createBlock('pen_setPenColorToColor',{
+        values: {
+            COLOR: color
+        }
+    })
+}
+
+function pen_changePenColorParamBy(color_param, value) {
+    return createBlock('pen_changePenColorParamBy',{
+        values: {
+            COLOR_PARAM: color_param,
+            VALUE: value
+        }
+    })
+}
+
+function pen_setPenColorParamTo(color_param, value) {
+    return createBlock('pen_setPenColorParamTo',{
+        values: {
+            COLOR_PARAM: color_param,
+            VALUE: value
+        }
+    })
+}
+
+function pen_menu_colorParam(color_param) {
+    return createBlock('pen_menu_colorParam',{
+        fields: {
+            colorParam: color_param
+        }
+    })
+}
+
+function pen_changePenSizeBy(size) {
+    return createBlock('pen_changePenSizeBy',{
+        values: {
+            SIZE: size
+        }
+    })
+}
+
+function pen_setPenSizeTo(size) {
+    return createBlock('pen_setPenSizeTo',{
+        values: {
+            SIZE: size
+        }
+    })
 }

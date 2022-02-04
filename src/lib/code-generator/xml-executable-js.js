@@ -1,111 +1,146 @@
-/**
- * 
- * @param {!Element} xml 
- */
-export default function domToExecutableJavascript(xml) {
+import VariableNameGenerator from "./variable-name-generator";
 
-    var code = '';
-    var variables = {};
+export default class xmlToJavascript {
 
-    var childCount = xml.childNodes.length;
+    constructor() {
+        this.varNameGenerator = new VariableNameGenerator();
 
-    for (var i = 0; i < childCount; i++) {
-        var xmlChild = xml.childNodes[i];
-        console.log(xmlChild);
-        var name = xmlChild.nodeName.toLowerCase();
-        if (name == 'block') {
-            code += blockToExecutableCode(xmlChild);
-            code += ';\n\n';
-        } else if (name == 'variables') {
-            var variableCount = xmlChild.childNodes.length;
-            for (var j = 0; j < variableCount; j++) {
-                var variable = xmlChild.childNodes[j];
-                variables[variable.innerText] = {
-                    local: variable.getAttribute('islocal'),
-                    type: variable.getAttribute('type')
-                };
-            }
-        }
+        this.code = '';
+        this.variables = {};
+        this.parameters = {};
+        this.functions = {};
     }
-    return {
-        variables: variables,
-        code: code
-    };
-}
 
-function handleChildren(blockChildNodes) {
-    var childrenBlockCode = {
-        inputs: {},
-        fields: {},
-        next: ''
-    };
-    for (var i = 0; i < blockChildNodes.length; i++) {
-        var childNode = blockChildNodes[i];
-        var name = childNode.nodeName.toLowerCase();
-        if (name == 'value') {
-            var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
-            childrenBlockCode.inputs[childNode.getAttribute('name')] = blockToExecutableCode(childBlock);
-        } else if (name == 'field') {
-            var fieldValue = childNode.textContent;
+    generateExecutableJs(xml) {
+        var childCount = xml.childNodes.length;
 
-            if (isNaN(fieldValue) || !fieldValue.trim()) {
-                fieldValue = '"' + fieldValue + '"';
-            }
+        for (var i = 0; i < childCount; i++) {
+            var xmlChild = xml.childNodes[i];
+            console.log(xmlChild);
+            var name = xmlChild.nodeName.toLowerCase();
+            if (name == 'block') {
+                this.code += this.blockToExecutableCode(xmlChild);
+                this.code += ';\n\n';
+            } else if (name == 'variables') {
+                var variableCount = xmlChild.childNodes.length;
 
-            childrenBlockCode.inputs[childNode.getAttribute('name')] = fieldValue;
-        } else if (name == 'statement') {
-            var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
-            childrenBlockCode.inputs[childNode.getAttribute('name')] = '{\n' +
-                blockToExecutableCode(childBlock) + ';\n}';
-        } else if (name == 'next') {
-            var nextBlock = childNode.childNodes[0];
-            childrenBlockCode.next = '.next(\n' + blockToExecutableCode(nextBlock) + ', )';
-        } else if (name == 'mutation') {
-            var funcName = childNode.getAttribute('proccode');
+                for (var j = 0; j < variableCount; j++) {
+                    var variable = xmlChild.childNodes[j];
 
-            if (funcName) { // true for procedure blocks defined by the user
-                if (funcName.indexOf(' ') != -1) {
-                    funcName = funcName.substring(0, funcName.indexOf(' '))
+                    const jsLegalName = this.varNameGenerator.renameScratchVariable(variable.innerText);
+                    this.variables[jsLegalName] = {
+                        scratchName: variable.innerText,
+                        local: variable.getAttribute('islocal'),
+                        type: variable.getAttribute('type')
+                    };
                 }
-                funcName = funcName.replace(/\W/g, '')
-                childrenBlockCode.mutation = "'" +
-                    funcName + "'";
             }
         }
+        return {
+            variables: this.variables,
+            parameters: this.parameters,
+            functions: this.functions,
+            code: this.code
+        };
     }
 
-    return childrenBlockCode;
-
-}
-
-/**
- * converts a block to code
- * @param {*} block 
- * @returns code representing the block
- */
-function blockToExecutableCode(block) {
-    const childNodes = block.childNodes;
-
-    const childrenBlockCode = handleChildren(childNodes);
-
-    const inputs = childrenBlockCode.inputs;
-
-    var code = block.getAttribute('type') + '(';
-
-    // ensure mutations are always the first parameter
-    if (childrenBlockCode.mutation) {
-        code += childrenBlockCode.mutation;
-        code += ', ';
+    handleChildren(blockChildNodes, blockType) {
+        var childrenBlockCode = {
+            inputs: {},
+            fields: {},
+            next: ''
+        };
+        for (var i = 0; i < blockChildNodes.length; i++) {
+            var childNode = blockChildNodes[i];
+            var name = childNode.nodeName.toLowerCase();
+            if (name == 'value') {
+                var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
+                childrenBlockCode.inputs[childNode.getAttribute('name')] = this.blockToExecutableCode(childBlock);
+            } else if (name == 'field') {
+                var fieldValue = childNode.textContent;
+                var fieldName = childNode.getAttribute('name');
+                var param;
+    
+                if (fieldName == 'VARIABLE' ||
+                    fieldName == 'LIST' ||
+                    blockType == 'argument_reporter_boolean' ||
+                    blockType == 'argument_reporter_string_number') {
+                    param = this.varNameGenerator.getGeneratedName(fieldValue);
+                    if (!param) {
+                        param = this.varNameGenerator.renameScratchVariable(fieldValue);
+                        this.parameters[param] = {
+                            scratchName: fieldValue
+                        };
+                    }
+                } else {
+                    param = '"' + fieldValue + '"';
+                }
+    
+                childrenBlockCode.inputs[childNode.getAttribute('name')] = param;
+            } else if (name == 'statement') {
+                var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
+                childrenBlockCode.inputs[childNode.getAttribute('name')] = 'function () {\n' +
+                    this.blockToExecutableCode(childBlock) + ';\n}';
+            } else if (name == 'next') {
+                var nextBlock = childNode.childNodes[0];
+                childrenBlockCode.next = '.next(\n' + this.blockToExecutableCode(nextBlock) + ', )';
+            } else if (name == 'mutation') {
+                var funcName = childNode.getAttribute('proccode');
+    
+                if (funcName) { // true for procedure blocks defined by the user
+                    var legalisedFuncName = this.varNameGenerator.getGeneratedName(funcName);
+                    if (!legalisedFuncName) {
+                        legalisedFuncName = this.varNameGenerator.renameScratchVariable(funcName);
+                        this.functions[legalisedFuncName] = {
+                            scratchName: funcName
+                        };
+                    }
+    
+                    childrenBlockCode.mutation = legalisedFuncName;
+                }
+            }
+        }
+    
+        return childrenBlockCode;
+    
     }
-
-    Object.keys(inputs).forEach((input) => {
-        code += inputs[input];
-        code += ', ';
-    });
-
-    code += ')';
-
-    code += childrenBlockCode.next;
-
-    return code;
+    
+    /**
+     * converts a block to code
+     * @param {*} block 
+     * @returns code representing the block
+     */
+    blockToExecutableCode(block) {
+        const childNodes = block.childNodes;
+    
+        const type = block.getAttribute('type');
+    
+        const childrenBlockCode = this.handleChildren(childNodes, type);
+    
+        const inputs = childrenBlockCode.inputs;
+    
+        var code = 'this.' + type + '(';
+    
+        // ensure mutations are always the first parameter
+        if (childrenBlockCode.mutation) {
+            code += childrenBlockCode.mutation;
+            code += ', ';
+        }
+    
+        Object.keys(inputs).forEach((input) => {
+            code += inputs[input];
+            code += ', ';
+        });
+    
+        code += ')';
+    
+        code += childrenBlockCode.next;
+    
+        return code;
+    }
+    
 }
+
+
+
+
