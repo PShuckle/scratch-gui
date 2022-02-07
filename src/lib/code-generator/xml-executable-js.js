@@ -50,6 +50,14 @@ export default class xmlToJavascript {
             fields: {},
             next: ''
         };
+        // handle all control blocks where the user leaves the condition field blank
+        if (blockType == 'control_if' ||
+            blockType == 'control_if_else' ||
+            blockType == 'control_wait_until' ||
+            blockType == 'control_repeat_until' ||
+            blockType == 'control_while') {
+                childrenBlockCode.inputs.CONDITION = 'default_condition()';
+        }
         for (var i = 0; i < blockChildNodes.length; i++) {
             var childNode = blockChildNodes[i];
             var name = childNode.nodeName.toLowerCase();
@@ -60,7 +68,7 @@ export default class xmlToJavascript {
                 var fieldValue = childNode.textContent;
                 var fieldName = childNode.getAttribute('name');
                 var param;
-    
+
                 if (fieldName == 'VARIABLE' ||
                     fieldName == 'LIST' ||
                     blockType == 'argument_reporter_boolean' ||
@@ -75,7 +83,7 @@ export default class xmlToJavascript {
                 } else {
                     param = '"' + fieldValue + '"';
                 }
-    
+
                 childrenBlockCode.inputs[childNode.getAttribute('name')] = param;
             } else if (name == 'statement') {
                 var childBlock = childNode.childNodes[childNode.childNodes.length - 1];
@@ -86,7 +94,7 @@ export default class xmlToJavascript {
                 childrenBlockCode.next = '.next(\n' + this.blockToExecutableCode(nextBlock) + ', )';
             } else if (name == 'mutation') {
                 var funcName = childNode.getAttribute('proccode');
-    
+
                 if (funcName) { // true for procedure blocks defined by the user
                     var legalisedFuncName = this.varNameGenerator.getGeneratedName(funcName);
                     if (!legalisedFuncName) {
@@ -95,16 +103,19 @@ export default class xmlToJavascript {
                             scratchName: funcName
                         };
                     }
-    
-                    childrenBlockCode.mutation = legalisedFuncName;
+
+                    childrenBlockCode.mutation = {
+                        name: legalisedFuncName,
+                        warp: childNode.getAttribute('warp')
+                    };
                 }
             }
         }
-    
+
         return childrenBlockCode;
-    
+
     }
-    
+
     /**
      * converts a block to code
      * @param {*} block 
@@ -112,35 +123,33 @@ export default class xmlToJavascript {
      */
     blockToExecutableCode(block) {
         const childNodes = block.childNodes;
-    
+
         const type = block.getAttribute('type');
-    
+
         const childrenBlockCode = this.handleChildren(childNodes, type);
-    
+
         const inputs = childrenBlockCode.inputs;
-    
+
         var code = 'this.' + type + '(';
-    
+
         // ensure mutations are always the first parameter
         if (childrenBlockCode.mutation) {
-            code += childrenBlockCode.mutation;
+            code += childrenBlockCode.mutation.name;
+            code += ', ';
+            code += childrenBlockCode.mutation.warp;
             code += ', ';
         }
-    
+
         Object.keys(inputs).forEach((input) => {
             code += inputs[input];
             code += ', ';
         });
-    
+
         code += ')';
-    
+
         code += childrenBlockCode.next;
-    
+
         return code;
     }
-    
+
 }
-
-
-
-

@@ -22,9 +22,13 @@ class FileUploadButton extends React.Component {
 
     console.log(file);
 
-    if (file.name == 'project.js' || file.name == 'broadcaster.js' || file.name == 'sprite.js') {
+    if (file.name == 'project.js' ||
+      file.name == 'broadcaster.js' ||
+      file.name == 'sprite.js' ||
+      file.name == 'package.json' ||
+      file.name == 'target-manager.js') {
       // increase the delay if there are bugs!
-      setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 5);
+      setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 20);
       return;
     }
 
@@ -64,7 +68,7 @@ class FileUploadButton extends React.Component {
       reader.onload = reader.onload.bind(this);
     }
 
-    setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 5);
+    setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 20);
     return;
   }
 

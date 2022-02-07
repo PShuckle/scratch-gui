@@ -32,54 +32,56 @@ const base = {
     },
     module: {
         rules: [{
-            test: /\.jsx?$/,
-            loader: 'babel-loader',
-            include: [
-                path.resolve(__dirname, 'src'),
-                /node_modules[\\/]scratch-[^\\/]+[\\/]src/,
-                /node_modules[\\/]pify/,
-                /node_modules[\\/]@vernier[\\/]godirect/
-            ],
-            options: {
-                // Explicitly disable babelrc so we don't catch various config
-                // in much lower dependencies.
-                babelrc: false,
-                plugins: [
-                    '@babel/plugin-syntax-dynamic-import',
-                    '@babel/plugin-transform-async-to-generator',
-                    '@babel/plugin-proposal-object-rest-spread',
-                    ['react-intl', {
-                        messagesDir: './translations/messages/'
-                    }]],
-                presets: ['@babel/preset-env', '@babel/preset-react']
-            }
-        },
-        {
-            test: /\.css$/,
-            use: [{
-                loader: 'style-loader'
-            }, {
-                loader: 'css-loader',
+                test: /\.jsx?$/,
+                loader: 'babel-loader',
+                include: [
+                    path.resolve(__dirname, 'src'),
+                    /node_modules[\\/]scratch-[^\\/]+[\\/]src/,
+                    /node_modules[\\/]pify/,
+                    /node_modules[\\/]@vernier[\\/]godirect/
+                ],
                 options: {
-                    modules: true,
-                    importLoaders: 1,
-                    localIdentName: '[name]_[local]_[hash:base64:5]',
-                    camelCase: true
+                    // Explicitly disable babelrc so we don't catch various config
+                    // in much lower dependencies.
+                    babelrc: false,
+                    plugins: [
+                        '@babel/plugin-syntax-dynamic-import',
+                        '@babel/plugin-transform-async-to-generator',
+                        '@babel/plugin-proposal-object-rest-spread',
+                        ['react-intl', {
+                            messagesDir: './translations/messages/'
+                        }]
+                    ],
+                    presets: ['@babel/preset-env', '@babel/preset-react']
                 }
-            }, {
-                loader: 'postcss-loader',
-                options: {
-                    ident: 'postcss',
-                    plugins: function () {
-                        return [
-                            postcssImport,
-                            postcssVars,
-                            autoprefixer
-                        ];
+            },
+            {
+                test: /\.css$/,
+                use: [{
+                    loader: 'style-loader'
+                }, {
+                    loader: 'css-loader',
+                    options: {
+                        modules: true,
+                        importLoaders: 1,
+                        localIdentName: '[name]_[local]_[hash:base64:5]',
+                        camelCase: true
                     }
-                }
-            }]
-        }]
+                }, {
+                    loader: 'postcss-loader',
+                    options: {
+                        ident: 'postcss',
+                        plugins: function () {
+                            return [
+                                postcssImport,
+                                postcssVars,
+                                autoprefixer
+                            ];
+                        }
+                    }
+                }]
+            }
+        ]
     },
     optimization: {
         minimizer: [
@@ -111,15 +113,13 @@ module.exports = [
             filename: '[name].js'
         },
         module: {
-            rules: base.module.rules.concat([
-                {
-                    test: /\.(svg|png|wav|gif|jpg)$/,
-                    loader: 'file-loader',
-                    options: {
-                        outputPath: 'static/assets/'
-                    }
+            rules: base.module.rules.concat([{
+                test: /\.(svg|png|wav|gif|jpg)$/,
+                loader: 'file-loader',
+                options: {
+                    outputPath: 'static/assets/'
                 }
-            ])
+            }])
         },
         optimization: {
             splitChunks: {
@@ -175,6 +175,10 @@ module.exports = [
                 to: 'static/blocks-media'
             }]),
             new CopyWebpackPlugin([{
+                from: 'src/lib/code-generator',
+                to: 'code-generator'
+            }]),
+            new CopyWebpackPlugin([{
                 from: 'extensions/**',
                 to: 'static',
                 context: 'src/examples'
@@ -203,21 +207,23 @@ module.exports = [
                 'react-dom': 'react-dom'
             },
             module: {
-                rules: base.module.rules.concat([
-                    {
-                        test: /\.(svg|png|wav|gif|jpg)$/,
-                        loader: 'file-loader',
-                        options: {
-                            outputPath: 'static/assets/',
-                            publicPath: `${STATIC_PATH}/assets/`
-                        }
+                rules: base.module.rules.concat([{
+                    test: /\.(svg|png|wav|gif|jpg)$/,
+                    loader: 'file-loader',
+                    options: {
+                        outputPath: 'static/assets/',
+                        publicPath: `${STATIC_PATH}/assets/`
                     }
-                ])
+                }])
             },
             plugins: base.plugins.concat([
                 new CopyWebpackPlugin([{
                     from: 'node_modules/scratch-blocks/media',
                     to: 'static/blocks-media'
+                }]),
+                new CopyWebpackPlugin([{
+                    from: 'src/lib/code-generator',
+                    to: 'code-generator'
                 }]),
                 new CopyWebpackPlugin([{
                     from: 'extension-worker.{js,js.map}',

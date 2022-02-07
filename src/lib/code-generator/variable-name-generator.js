@@ -4,7 +4,7 @@ const reservedWords = ['abstract', 'arguments', 'await', 'boolean', 'break', 'by
     'goto', 'if', 'implements', 'import', 'in', 'instanceof', 'int', 'interface', 'let', 'long',
     'native', 'new', 'null', 'package', 'private', 'protected', 'public', 'return', 'short',
     'static', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient', 'true',
-    'try', 'typeof', 'var', 'void', 'volatile', 'while', 'with', 'yield'
+    'try', 'typeof', 'var', 'void', 'volatile', 'while', 'with', 'yield', ''
 ].concat(Object.getOwnPropertyNames(globalThis));
 
 export default class VariableNameGenerator {
@@ -12,6 +12,7 @@ export default class VariableNameGenerator {
         this.variables = [];
         this.variableLookup = {};
         this.targets = [];
+        this.targetLookup = {};
     }
 
     generateCounterVariable() {
@@ -44,7 +45,13 @@ export default class VariableNameGenerator {
     generateClassName(scratchTargetName) {
         const className = this.generateLegalSymbolName(scratchTargetName, this.targets);
 
+        this.targetLookup[scratchTargetName] = className;
+
         return className;
+    }
+
+    getClassName(scratchTargetName) {
+        return this.targetLookup[scratchTargetName];
     }
 
     generateLegalSymbolName(scratchName, array) {

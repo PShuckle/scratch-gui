@@ -31,8 +31,11 @@ class Generator {
                 variables: variables,
                 code: readableJs,
                 params: params,
-                functions: functions
+                functions: functions,
+                targetData: target
             };
+
+            console.log(target);
         })
 
         createJsFiles(files);

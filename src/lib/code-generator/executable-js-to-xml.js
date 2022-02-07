@@ -34,6 +34,9 @@ function addVariables(xml, variables) {
 
     Object.keys(variables).forEach(variable => {
         var variableTag = document.createElement('variable');
+        if (variable.charAt(0) == '☁') {
+            variableTag.setAttribute('iscloud', 'true');
+        }
         variableTag.setAttribute('islocal', variables[variable].isLocal);
         variableTag.setAttribute('type', '');
         if (variables[variable].type == '[]') {
@@ -747,6 +750,12 @@ function control_while(condition, substack) {
     })
 }
 
+// this function does not correspond to a block, rather it is generated when the user has
+// a control block with a blank conditional statement
+function default_condition() {
+    return;
+}
+
 function control_stop(stop_option) {
     return createBlock('control_stop', {
         fields: {
@@ -759,7 +768,7 @@ function control_stop(stop_option) {
 function createControlStopMutation(stop_option) {
     const mutation = document.createElement('mutation');
 
-    if (stop_option == 'all' || stop_option || 'this script') {
+    if (stop_option == 'all' || stop_option == 'this script') {
         mutation.setAttribute('hasnext', false);
     } else {
         mutation.setAttribute('hasnext', true);
@@ -884,7 +893,7 @@ function sensing_keyoptions(key_option) {
         fields: {
             KEY_OPTION: key_option
         }
-    })
+    }, true)
 }
 
 function sensing_mousedown() {
@@ -1264,14 +1273,14 @@ function data_hidelist(list) {
     }, false, true)
 }
 
-function procedures_call(name, ...params) {
+function procedures_call(name, warp, ...params) {
     const values = {};
     for (let i = 0; i < params.length; i++) {
         values[i] = params[i];
     }
     return createBlock('procedures_call', {
         values: values,
-        mutation: createMutation(name, values)
+        mutation: createMutation(name, warp, values)
     })
 }
 
@@ -1286,29 +1295,32 @@ function procedures_definition(custom_block) {
     return block;
 }
 
-function procedures_prototype(name, ...params) {
+function procedures_prototype(name, warp, ...params) {
     const values = {};
     for (let i = 0; i < params.length; i++) {
-        values[i] = params[i];
+        values[i] = createBlock(params[i].getAttribute('type'), {
+            fields: {
+                VALUE: params[i].innerText
+            }
+        }, true)
     }
     return createBlock('procedures_prototype', {
         values: values,
-        mutation: createMutation(name, values)
+        mutation: createMutation(name, warp, values)
     }, true)
 }
 
-function createMutation(name, values) {
+function createMutation(name, warp, values) {
     var argumentIds = '';
     var argumentNames = '';
     var argumentDefaults = '';
 
     if (values) {
         Object.keys(values).forEach((valueName) => {
+            argumentNames += '"' + values[valueName].innerText + '",';
             if (values[valueName].getAttribute('type') == 'argument_reporter_boolean') {
-                argumentNames += '"boolean",';
                 argumentDefaults += '"false",';
             } else {
-                argumentNames += '"number or text",';
                 argumentDefaults += '"",'
             }
             argumentIds += '"' + valueName + '",';
@@ -1324,7 +1336,7 @@ function createMutation(name, values) {
         '[' + argumentNames.substring(0, argumentNames.length - 1) + ']');
     mutation.setAttribute('argumentdefaults',
         '[' + argumentDefaults.substring(0, argumentDefaults.length - 1) + ']');
-    mutation.setAttribute('warp', false);
+    mutation.setAttribute('warp', warp);
 
     return mutation;
 }
@@ -1334,7 +1346,7 @@ function argument_reporter_boolean(value) {
         fields: {
             VALUE: value
         }
-    }, true)
+    })
 }
 
 function argument_reporter_string_number(value) {
@@ -1342,7 +1354,7 @@ function argument_reporter_string_number(value) {
         fields: {
             VALUE: value
         }
-    }, true)
+    })
 }
 
 function music_playDrumForBeats(drum, beats) {

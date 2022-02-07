@@ -1,5 +1,6 @@
 export default function readableToexecutableJs(js) {
     var symbolNameLookup = getSymbolNameLookup(js);
+    var functionWarpLookup = getFunctionWarpLookup(js);
     var vars = getVariables(js, symbolNameLookup);
 
     js = trimJsFile(js);
@@ -83,23 +84,26 @@ export default function readableToexecutableJs(js) {
 
             const params = paramsPattern.exec(currentFunc);
 
+            var warp = functionWarpLookup[functionHeader];
             var parameterTypes = symbolNameLookup[functionHeader].match(/%./g);
             var paramsAsStrings = '';
 
             var parameterList = params.groups.params.split(', ');
 
-            for (let i = 0; i < parameterTypes.length; i++) {
-                if (parameterTypes[i] == '%s' || parameterTypes[i] == '%n') {
-                    paramsAsStrings += "argument_reporter_string_number('" +
-                        parameterList[i] + "'), ";
-                } else if (parameterTypes[i] == '%b') {
-                    paramsAsStrings += "argument_reporter_boolean('" +
-                        parameterList[i] + "'), ";
+            if (parameterTypes) {
+                for (let i = 0; i < parameterTypes.length; i++) {
+                    if (parameterTypes[i] == '%s' || parameterTypes[i] == '%n') {
+                        paramsAsStrings += "argument_reporter_string_number('" +
+                            parameterList[i] + "'), ";
+                    } else if (parameterTypes[i] == '%b') {
+                        paramsAsStrings += "argument_reporter_boolean('" +
+                            parameterList[i] + "'), ";
+                    }
                 }
             }
 
             let replacementString = 'procedures_definition(function () {\n procedures_prototype(' + functionHeader +
-                ', ' + paramsAsStrings + `)}).next(
+                ', ' + warp + ', ' + paramsAsStrings + `)}).next(
                                 ` + functionBody + ')\n';
 
             functions[i] = replacementString;
@@ -175,6 +179,13 @@ function getSymbolNameLookup(js) {
     var symbolNameLookup = JSON.parse(symbolNameLookupPattern.exec(js).groups.object);
 
     return symbolNameLookup;
+}
+
+function getFunctionWarpLookup(js) {
+    var functionWarpLookupPattern = /this.functionWarpLookup = (?<object>{(.|\n)*?})/;
+    var functionWarpLookup = JSON.parse(functionWarpLookupPattern.exec(js).groups.object);
+
+    return functionWarpLookup;
 }
 
 /**

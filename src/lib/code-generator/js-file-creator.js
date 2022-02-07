@@ -12,6 +12,9 @@ export default function createProject(files) {
     // variable names used in the generated Javascript code are legal (eg contain no spaces)
     const localSymbolNameLookup = {};
     const globalSymbolNameLookup = {};
+    const functionWarpLookup = {};
+
+    const drawList = '[' + files.Stage.targetData.renderer._drawList.toString() + ']';
 
     Object.keys(files).forEach((name) => {
         var className = variableNameGenerator.generateClassName(name);
@@ -37,7 +40,7 @@ export default function createProject(files) {
                 fileConstructorCode += '\nthis.' +
                     variable +
                     ' = ' + init + ';';
-                
+
             } else {
                 globalVars[variable] = init;
                 globalSymbolNameLookup[variable] = variables[variable].scratchName;
@@ -142,7 +145,7 @@ export default function createProject(files) {
             }
 
             if (snippet.includes('procedures_definition')) {
-                var functionNamePattern = /(?:procedures_prototype\()(?<funcName>.*?)(?:(,|\))(.|\n)*?})/
+                var functionNamePattern = /(?:procedures_prototype\()(?<funcName>.*?), (?<warp>.*?)(?:(, |\))(.|\n)*?})/
                 var functionParamPattern = /(?:argument_reporter_.*?\()(?<name>.*?)(?:\))/g
                 var func = functionNamePattern.exec(snippet);
                 var functionParamList = '';
@@ -154,7 +157,8 @@ export default function createProject(files) {
                 }
 
                 var trimmedSnippet = snippet.substring(snippet.indexOf('});') + 3);
-                
+
+                functionWarpLookup[func.groups.funcName] = func.groups.warp;
                 localSymbolNameLookup[func.groups.funcName] = functions[func.groups.funcName].scratchName;
 
                 procedures += func.groups.funcName + `(` +
@@ -165,9 +169,9 @@ export default function createProject(files) {
         })
 
         fileConstructorCode += 'this.symbolNameLookup = ' + JSON.stringify(localSymbolNameLookup) + `
-        this.globalVariables = ` + JSON.stringify(globalVars);
-        fileCode = fileCode.replace('super(broadcaster);',
-            'super(broadcaster);' + fileConstructorCode);
+        this.globalVariables = ` + JSON.stringify(globalVars) + `
+        this.functionWarpLookup = ` + JSON.stringify(functionWarpLookup);
+        fileCode = fileCode.replace('SYMBOL_NAME_LOOKUP', fileConstructorCode);
 
         fileCode = fileCode.replace('PROCEDURES_DEFINITIONS', procedures);
 
@@ -177,10 +181,12 @@ export default function createProject(files) {
     });
 
     zip.file('project.js', createProjectFile(files));
-    zip.file('broadcaster.js', createBroadcasterFile(files));
-    zip.file('sprite.js', createSpriteFile(files));
+    zip.file('broadcaster.js', loadFile('code-generator/code-generator-sample/broadcaster.js'));
+    zip.file('sprite.js', loadFile('code-generator/code-generator-sample/sprite.js'));
+    zip.file('target-manager.js', loadFile('code-generator/code-generator-sample/target-manager.js'));
     zip.file('global-variable-manager.js',
-        createGlobalVariableManager(globalVars, globalSymbolNameLookup));
+        createGlobalVariableManager(globalVars, globalSymbolNameLookup, drawList));
+    zip.file('package.json', loadFile('code-generator/code-generator-sample/package.json'));
 
     zip.generateAsync({
             type: "blob"
@@ -196,12 +202,25 @@ export default function createProject(files) {
         });
 }
 
+function loadFile(filePath) {
+    var result = null;
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", filePath, false);
+    xmlhttp.send();
+    if (xmlhttp.status == 200) {
+        result = xmlhttp.responseText;
+    }
+    return result;
+}
+
 function createFileSkeleton(name) {
     const fileCode = `import Sprite from './sprite.js';
 
     class ` + name + ` extends Sprite {
-        constructor (broadcaster) {
-            super(broadcaster);
+        constructor (broadcaster, globalVariableManager, targetManager, params) {
+            super(broadcaster, globalVariableManager, targetManager, params);
+            SYMBOL_NAME_LOOKUP
+            console.log(params);
         }
 
         event_whenflagclicked() {
@@ -244,7 +263,8 @@ function createFileSkeleton(name) {
 
 function createProjectFile(files) {
     var code = `import Broadcaster from './broadcaster.js';
-    import GlobalVariableManager from './global-variable-manager.js;
+    import GlobalVariableManager from './global-variable-manager.js';
+    import TargetManager from './target-manager.js';
     `
 
     Object.keys(files).forEach((name) => {
@@ -253,15 +273,33 @@ function createProjectFile(files) {
 
     code += `
     const broadcaster = new Broadcaster();
-    const varManager = new GlobalVariableManager();
+    const globalVariableManager = new GlobalVariableManager();
+    const targetManager = new TargetManager();
     
     const targets = {\n`;
     Object.keys(files).forEach((name) => {
-        code += name + ': new ' + name + '(broadcaster, varManager),\n';
+        const targetData = files[name].targetData;
+        const targetCostumesList = targetData.sprite.costumes_.map(
+            costume => '"' + costume.name + '"');
+        var targetParameterList = {
+            x: targetData.x,
+            y: targetData.y,
+            direction: targetData.direction,
+            rotationStyle: '"' + targetData.rotationStyle + '"',
+            visible: targetData.visible,
+            costume: targetData.currentCostume,
+            costumes: '[' + targetCostumesList.toString() + ']',
+            size: targetData.size,
+            effects: targetData.effects,
+            drawableID: targetData.drawableID
+        }
+        code += name + ': new ' + name + '(broadcaster, globalVariableManager, targetManager, ' +
+            JSON.stringify(targetParameterList) + '),\n';
     });
     code += `};
     
     broadcaster.setTargets(targets);
+    targetManager.addTargetsObject(targets);
     
     Object.keys(targets).forEach(targetName => {
         targets[targetName].event_whenflagclicked();
@@ -270,50 +308,7 @@ function createProjectFile(files) {
     return code;
 }
 
-function createBroadcasterFile(files) {
-    var code = `
-    class Broadcaster {
-        constructor () {
-            this.targets = {};
-        }
-    
-        broadcast(message) {
-            Object.keys(this.targets).forEach(targetName => {
-                this.targets[targetName].event_whenbroadcastreceived(message);
-            })
-        }
-    
-        setTargets(targets) {
-            this.targets = targets;
-        }
-    }
-    
-    export default Broadcaster;`
-
-    return code;
-}
-
-function createSpriteFile() {
-    return `class Sprite {
-        constructor(broadcaster, varManager) {
-            this.x = 0;
-            this.y = 0;
-            this.direction = 90;
-    
-            this.broadcaster = broadcaster;
-            this.varManager = varManager;
-        }
-    
-        motion_movesteps(steps) {
-            // change this.x and this.y accordingly
-        }
-    
-    }
-    
-    export default Sprite;`
-}
-
-function createGlobalVariableManager(vars, symbolNameLookup) {
+function createGlobalVariableManager(vars, symbolNameLookup, drawList) {
     var code = `class GlobalVariableManager {
         constructor () {
             this.variables = {
@@ -323,7 +318,8 @@ function createGlobalVariableManager(vars, symbolNameLookup) {
     })
     code += `};
             this.symbolNameLookup = ` + JSON.stringify(symbolNameLookup) +
-            `
+        `;
+        this.drawList = ` + drawList + `;
         }
     
         addVariable(name) {

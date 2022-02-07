@@ -1,6 +1,3 @@
-import Sprite1 from './sprite1.js';
-import Abby from './abby.js';
-
 class Broadcaster {
     constructor () {
         this.targets = {};
