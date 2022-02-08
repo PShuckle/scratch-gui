@@ -81,6 +81,7 @@ export default class xmlToJavascript {
                             scratchName: fieldValue
                         };
                     }
+                    param = 'this.' + param;
                 } else {
                     param = '"' + fieldValue + '"';
                 }
@@ -106,7 +107,7 @@ export default class xmlToJavascript {
                     }
 
                     childrenBlockCode.mutation = {
-                        name: legalisedFuncName,
+                        name: 'this.' + legalisedFuncName,
                         warp: childNode.getAttribute('warp')
                     };
                 }

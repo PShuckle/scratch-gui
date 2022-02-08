@@ -163,8 +163,8 @@ export default function createProject(files) {
             }
 
             if (snippet.includes('procedures_definition')) {
-                var functionNamePattern = /(?:procedures_prototype\()(?<funcName>.*?), (?<warp>.*?)(?:(, |\))(.|\n)*?})/
-                var functionParamPattern = /(?:argument_reporter_.*?\()(?<name>.*?)(?:\))/g
+                var functionNamePattern = /(?:procedures_prototype\(this\.)(?<funcName>.*?), (?<warp>.*?)(?:(, |\))(.|\n)*?})/
+                var functionParamPattern = /(?:argument_reporter_.*?\(this\.)(?<name>.*?)(?:\))/g
                 var func = functionNamePattern.exec(snippet);
                 var functionParamList = '';
                 var param;

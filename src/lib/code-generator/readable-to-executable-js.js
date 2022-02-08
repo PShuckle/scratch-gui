@@ -93,11 +93,11 @@ export default function readableToexecutableJs(js) {
             if (parameterTypes) {
                 for (let i = 0; i < parameterTypes.length; i++) {
                     if (parameterTypes[i] == '%s' || parameterTypes[i] == '%n') {
-                        paramsAsStrings += "argument_reporter_string_number('" +
-                            parameterList[i] + "'), ";
+                        paramsAsStrings += "argument_reporter_string_number(" +
+                            parameterList[i] + "), ";
                     } else if (parameterTypes[i] == '%b') {
-                        paramsAsStrings += "argument_reporter_boolean('" +
-                            parameterList[i] + "'), ";
+                        paramsAsStrings += "argument_reporter_boolean(" +
+                            parameterList[i] + "), ";
                     }
                 }
             }
