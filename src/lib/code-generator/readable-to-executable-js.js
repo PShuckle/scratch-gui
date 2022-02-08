@@ -1,7 +1,7 @@
 export default function readableToexecutableJs(js) {
     var symbolNameLookup = getSymbolNameLookup(js);
     var functionWarpLookup = getFunctionWarpLookup(js);
-    var vars = getVariables(js, symbolNameLookup);
+    var vars = getVariables(js);
 
     js = trimJsFile(js);
 
@@ -116,7 +116,12 @@ export default function readableToexecutableJs(js) {
 
     var symbolsToStrings = '';
     Object.keys(symbolNameLookup).forEach((symbol) => {
-        symbolsToStrings += 'var ' + symbol + ' = "' + symbolNameLookup[symbol] + '";\n'
+        symbolsToStrings += 'var ' + symbol + ' = "' + symbolNameLookup[symbol] + '";\n';
+    })
+
+    console.log(vars);
+    Object.keys(vars).forEach((variable) => {
+        symbolsToStrings += 'var ' + variable + ' = ' + vars[variable].scratchName + ';\n';
     })
 
     return {
@@ -140,36 +145,23 @@ function trimJsFile(js) {
     return js;
 }
 
-function getVariables(js, symbolNameLookup) {
-    var constructorBody = js.substring(js.indexOf('this'), js.indexOf('}'));
-
-    var localVarPattern = /this\.(?<name>.*?) = (?<type>.*?);/g;
+function getVariables(js) {
+    var localVarPattern = /this\.(?<name>.*?) = {"value":(?<type>.*?),"isLocal":(?<isLocal>.*?),"isCloud":(?<isCloud>.*?),"scratchName":(?<scratchName>.*?)}/g;
 
     var variableList = {};
 
     var variable;
 
-    while (variable = localVarPattern.exec(constructorBody)) {
-        variableList[symbolNameLookup[variable.groups.name]] = {
+    while (variable = localVarPattern.exec(js)) {
+        variableList[variable.groups.name] = {
             type: variable.groups.type,
-            isLocal: true
+            isLocal: variable.groups.isLocal,
+            isCloud: variable.groups.isCloud,
+            scratchName: variable.groups.scratchName
         };
     }
 
-    var globalVarPattern = /this.globalVariables = (?<globalVars>{(.|\n)*?})/g;
-    var globalVars = JSON.parse(globalVarPattern.exec(js).groups.globalVars);
-
-    Object.keys(globalVars).forEach((variable) => {
-        if (globalVars[variable] == '0') {
-            var type = '0';
-        } else {
-            var type = symbolNameLookup[variable];
-        }
-        variableList[symbolNameLookup[variable]] = {
-            type: type,
-            isLocal: false
-        };
-    })
+    console.log(variableList);
 
     return variableList;
 }

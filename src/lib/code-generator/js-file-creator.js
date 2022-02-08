@@ -36,18 +36,29 @@ export default function createProject(files) {
                 init = '"' + variables[variable].scratchName + '"';
             }
 
-            if (variables[variable].local == 'true') {
-                fileConstructorCode += '\nthis.' +
-                    variable +
-                    ' = ' + init + ';';
+            fileConstructorCode += '\nthis.' +
+                variable +
+                ' = ' + JSON.stringify({
+                    value: init,
+                    isLocal: variables[variable].local,
+                    isCloud: variables[variable].cloud,
+                    scratchName: variables[variable].scratchName
+                })
 
-            } else {
-                globalVars[variable] = init;
-                globalSymbolNameLookup[variable] = variables[variable].scratchName;
-            }
-            localSymbolNameLookup[variable] = variables[variable].scratchName;
+            // if (variables[variable].local == 'true') {
+
+
+            // } else {
+            //     globalVars[variable] = {
+            //         value: ' + init + '
+            //     };
+            //     globalSymbolNameLookup[variable] = variables[variable].scratchName;
+            // }
+            // localSymbolNameLookup[variable] = variables[variable].scratchName;
 
         })
+
+        fileConstructorCode += '\n';
 
         var codeSnippets = generatedJsCode.split('\n\n');
 

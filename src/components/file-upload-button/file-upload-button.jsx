@@ -4,6 +4,7 @@ class FileUploadButton extends React.Component {
   constructor(props) {
     super(props);
     this.uploadFile = this.uploadFile.bind(this);
+    this.prevTarget = null;
     // this.domToWorkspace = this.domToWorkspace.bind(this);
   }
 
@@ -28,7 +29,7 @@ class FileUploadButton extends React.Component {
       file.name == 'package.json' ||
       file.name == 'target-manager.js') {
       // increase the delay if there are bugs!
-      setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 20);
+      setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 100);
       return;
     }
 
@@ -55,6 +56,9 @@ class FileUploadButton extends React.Component {
             this.props.vm.setEditingTarget(target.id);
             this.props.generator.javascriptToDom(reader.result);
             console.log(target);
+            console.log(this.prevTarget);
+            debugger;
+            this.prevTarget = target;
           }
         }
 
@@ -68,7 +72,7 @@ class FileUploadButton extends React.Component {
       reader.onload = reader.onload.bind(this);
     }
 
-    setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 20);
+    setTimeout(this.createBlocksFromFile.bind(this, files, i + 1), 100);
     return;
   }
 
