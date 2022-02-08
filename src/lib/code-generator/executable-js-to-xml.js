@@ -11,6 +11,7 @@ export default function javascriptToXml(javascript) {
         return this;
     }
 
+    console.log(javascript.code);
     const topBlock = eval(javascript.code);
 
     var xml = document.createElement('xml');

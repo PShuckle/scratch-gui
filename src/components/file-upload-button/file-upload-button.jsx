@@ -55,10 +55,6 @@ class FileUploadButton extends React.Component {
             console.log(file.name);
             this.props.vm.setEditingTarget(target.id);
             this.props.generator.javascriptToDom(reader.result);
-            console.log(target);
-            console.log(this.prevTarget);
-            debugger;
-            this.prevTarget = target;
           }
         }
 
