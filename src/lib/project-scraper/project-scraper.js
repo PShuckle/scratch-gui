@@ -16,7 +16,7 @@ const downloadProjects = async () => {
             'download': {
                 'default_directory': 'C:\\Users\\nicho\\Downloads\\scratch-downloads',
                 'prompt_for_download': 'false'
-            }, 
+            },
             'profile.default_content_setting_values.automatic_downloads': 1
         }
     });
@@ -24,6 +24,8 @@ const downloadProjects = async () => {
     var driver = new webdriver.Builder()
         .withCapabilities(chromeCapabilities)
         .build();
+
+    const projectURLs = [];
 
     if (process.argv[2] == 'search') {
         var searchURL = 'https://scratch.mit.edu/search/projects?q=' + process.argv[3];
@@ -40,8 +42,6 @@ const downloadProjects = async () => {
             }
         }
 
-        const projectURLs = [];
-
         var projects = await driver.findElements(By.className('thumbnail-image'));
 
         while (projects.length < process.argv[4]) {
@@ -55,27 +55,31 @@ const downloadProjects = async () => {
             projectURLs.push(href.substring(0, href.length - 1));
         }
 
-        await driver.get('C:\\Users\\nicho\\Documents\\Development\\srs-chatbot-2021\\scratch-gui\\src\\lib\\project-scraper\\index.html');
-
-        // const inputBar = await driver.findElement(By.id('project-select'));
-
-        const downloadButtons = await driver.findElements(By.className('download-button'));
-
-        const generateSb3Button = downloadButtons[2];
-
-        for (let i = 0; i < projectURLs.length; i++) {
-            var url = projectURLs[i];
-            var script = "document.getElementById('project-select').setAttribute('value', '" + url + "');";
-            await driver.executeScript(script);
 
 
-            generateSb3Button.click();
-
-            // download(url, 'sb3');
-
-        };
-
+    } else if (process.argv[2] == 'url') {
+        projectURLs.push(process.argv[3]);
     }
+
+    await driver.get(process.cwd() + '\\src\\lib\\project-scraper\\index.html');
+
+    // const inputBar = await driver.findElement(By.id('project-select'));
+
+    const downloadButtons = await driver.findElements(By.className('download-button'));
+
+    const generateSb3Button = downloadButtons[2];
+
+    for (let i = 0; i < projectURLs.length; i++) {
+        var url = projectURLs[i];
+        var script = "document.getElementById('project-select').setAttribute('value', '" + url + "');";
+        await driver.executeScript(script);
+
+
+        generateSb3Button.click();
+
+        // download(url, 'sb3');
+
+    };
 
     // driver.close();
 }

@@ -567,7 +567,7 @@ class Blocks extends React.Component {
                     onDrop={this.handleDrop}
                     {...props}
                 />
-                <button style={{ 'position': 'absolute', 'z-index': '9' }} onClick={this.workspaceToJavascript}>testing</button>
+                <button style={{ 'position': 'absolute', 'z-index': '9' }} onClick={this.workspaceToJavascript}>Download Javascript code</button>
                 <FileUploadButton
                     ScratchBlocks = {this.ScratchBlocks}
                     generator = {this.generator}
