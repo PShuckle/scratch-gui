@@ -34,18 +34,16 @@ function addVariables(xml, variables) {
 
     Object.keys(variables).forEach(variable => {
         var variableTag = document.createElement('variable');
-        if (variable.charAt(0) == '☁') {
-            variableTag.setAttribute('iscloud', 'true');
-        }
+        variableTag.setAttribute('iscloud', variables[variable].isCloud);
         variableTag.setAttribute('islocal', variables[variable].isLocal);
         variableTag.setAttribute('type', '');
         if (variables[variable].type == '[]') {
             variableTag.setAttribute('type', 'list');
-        } else if (variables[variable].type != '0') {
+        } else if (variables[variable].type != 0) {
             variableTag.setAttribute('type', 'broadcast_msg');
-            variableTag.setAttribute('id', 'broadcastMsgId-' + variables[variable].type);
+            variableTag.setAttribute('id', 'broadcastMsgId-' + variables[variable].scratchName);
         }
-        variableTag.textContent = variable;
+        variableTag.textContent = variables[variable].scratchName;
         variablesTag.appendChild(variableTag);
     })
 

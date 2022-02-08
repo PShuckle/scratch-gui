@@ -29,25 +29,43 @@ export default function createProject(files) {
 
         Object.keys(variables).forEach(variable => {
             // initalise lists to [] and all other variables to 0
-            var init = '0';
+            var init = 0;
             if (variables[variable].type == 'list') {
-                init = '[]';
+                init = [];
             } else if (variables[variable].type == 'broadcast_msg') {
-                init = '"' + variables[variable].scratchName + '"';
+                init = variables[variable].scratchName;
             }
 
-            if (variables[variable].local == 'true') {
-                fileConstructorCode += '\nthis.' +
-                    variable +
-                    ' = ' + init + ';';
+            fileConstructorCode += '\nthis.' +
+                variable +
+                ' = ' + JSON.stringify({
+                    value: init,
+                    isLocal: variables[variable].local,
+                    isCloud: variables[variable].cloud,
+                    scratchName: variables[variable].scratchName
+                })
 
-            } else {
-                globalVars[variable] = init;
+            if (variables[variable].local == 'false') {
+                globalVars[variable] = {
+                    value: init
+                };
                 globalSymbolNameLookup[variable] = variables[variable].scratchName;
             }
-            localSymbolNameLookup[variable] = variables[variable].scratchName;
+
+            // if (variables[variable].local == 'true') {
+
+
+            // } else {
+            //     globalVars[variable] = {
+            //         value: ' + init + '
+            //     };
+            //     globalSymbolNameLookup[variable] = variables[variable].scratchName;
+            // }
+            // localSymbolNameLookup[variable] = variables[variable].scratchName;
 
         })
+
+        fileConstructorCode += '\n';
 
         var codeSnippets = generatedJsCode.split('\n\n');
 

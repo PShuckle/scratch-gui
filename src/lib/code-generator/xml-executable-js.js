@@ -31,7 +31,8 @@ export default class xmlToJavascript {
                     this.variables[jsLegalName] = {
                         scratchName: variable.innerText,
                         local: variable.getAttribute('islocal'),
-                        type: variable.getAttribute('type')
+                        type: variable.getAttribute('type'),
+                        cloud: variable.getAttribute('iscloud')
                     };
                 }
             }
