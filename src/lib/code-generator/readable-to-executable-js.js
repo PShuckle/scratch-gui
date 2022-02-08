@@ -119,9 +119,8 @@ export default function readableToexecutableJs(js) {
         symbolsToStrings += 'var ' + symbol + ' = "' + symbolNameLookup[symbol] + '";\n';
     })
 
-    console.log(vars);
     Object.keys(vars).forEach((variable) => {
-        symbolsToStrings += 'var ' + variable + ' = ' + vars[variable].scratchName + ';\n';
+        symbolsToStrings += 'var ' + variable + ' = "' + vars[variable].scratchName + '";\n';
     })
 
     return {
@@ -146,7 +145,7 @@ function trimJsFile(js) {
 }
 
 function getVariables(js) {
-    var localVarPattern = /this\.(?<name>.*?) = {"value":(?<type>.*?),"isLocal":(?<isLocal>.*?),"isCloud":(?<isCloud>.*?),"scratchName":(?<scratchName>.*?)}/g;
+    var localVarPattern = /this\.(?<name>.*?) = {"value":(?<type>.*?),"isLocal":"(?<isLocal>.*?)","isCloud":"(?<isCloud>.*?)","scratchName":"(?<scratchName>.*?)"}/g;
 
     var variableList = {};
 
@@ -160,8 +159,6 @@ function getVariables(js) {
             scratchName: variable.groups.scratchName
         };
     }
-
-    console.log(variableList);
 
     return variableList;
 }

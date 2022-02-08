@@ -29,11 +29,11 @@ export default function createProject(files) {
 
         Object.keys(variables).forEach(variable => {
             // initalise lists to [] and all other variables to 0
-            var init = '0';
+            var init = 0;
             if (variables[variable].type == 'list') {
-                init = '[]';
+                init = [];
             } else if (variables[variable].type == 'broadcast_msg') {
-                init = '"' + variables[variable].scratchName + '"';
+                init = variables[variable].scratchName;
             }
 
             fileConstructorCode += '\nthis.' +
@@ -44,6 +44,13 @@ export default function createProject(files) {
                     isCloud: variables[variable].cloud,
                     scratchName: variables[variable].scratchName
                 })
+
+            if (variables[variable].local == 'false') {
+                globalVars[variable] = {
+                    value: init
+                };
+                globalSymbolNameLookup[variable] = variables[variable].scratchName;
+            }
 
             // if (variables[variable].local == 'true') {
 
