@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {compose} from 'redux';
-import {connect} from 'react-redux';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
 import ReactModal from 'react-modal';
 import VM from 'scratch-vm';
-import {injectIntl, intlShape} from 'react-intl';
+import { injectIntl, intlShape } from 'react-intl';
 
 import ErrorBoundaryHOC from '../lib/error-boundary-hoc.jsx';
 import {
@@ -37,16 +37,24 @@ import vmListenerHOC from '../lib/vm-listener-hoc.jsx';
 import vmManagerHOC from '../lib/vm-manager-hoc.jsx';
 import cloudManagerHOC from '../lib/cloud-manager-hoc.jsx';
 
+import ClassroomGui from './classroom-gui.jsx'
 import GUIComponent from '../components/gui/gui.jsx';
-import {setIsScratchDesktop} from '../lib/isScratchDesktop.js';
+import { setIsScratchDesktop } from '../lib/isScratchDesktop.js';
 
 class GUI extends React.Component {
-    componentDidMount () {
+    constructor(props) {
+        super(props);
+        this.state = {
+            gui: 'blocks'
+        }
+        this.setGuiState = this.setGuiState.bind(this)
+    }
+    componentDidMount() {
         setIsScratchDesktop(this.props.isScratchDesktop);
         this.props.onStorageInit(storage);
         this.props.onVmInit(this.props.vm);
     }
-    componentDidUpdate (prevProps) {
+    componentDidUpdate(prevProps) {
         if (this.props.projectId !== prevProps.projectId && this.props.projectId !== null) {
             this.props.onUpdateProjectId(this.props.projectId);
         }
@@ -56,7 +64,12 @@ class GUI extends React.Component {
             this.props.onProjectLoaded();
         }
     }
-    render () {
+    setGuiState(guiState) {
+        this.setState({
+            gui: guiState
+        });
+    }
+    render() {
         if (this.props.isError) {
             throw new Error(
                 `Error in Scratch GUI [location=${window.location}]: ${this.props.error}`);
@@ -83,12 +96,19 @@ class GUI extends React.Component {
             ...componentProps
         } = this.props;
         return (
-            <GUIComponent
-                loading={fetchingProject || isLoading || loadingStateVisible}
-                {...componentProps}
-            >
-                {children}
-            </GUIComponent>
+            (this.state.gui == 'blocks') ?
+                <GUIComponent
+                    loading={fetchingProject || isLoading || loadingStateVisible}
+                    onClickClassroom={this.setGuiState}
+                    {...componentProps}
+                >
+                    {children}
+                </GUIComponent> :
+                <ClassroomGui
+                    setGuiState={this.setGuiState}
+                >
+                </ClassroomGui>
+
         );
     }
 }
@@ -119,9 +139,9 @@ GUI.propTypes = {
 GUI.defaultProps = {
     isScratchDesktop: false,
     onStorageInit: storageInstance => storageInstance.addOfficialScratchWebStores(),
-    onProjectLoaded: () => {},
-    onUpdateProjectId: () => {},
-    onVmInit: (/* vm */) => {}
+    onProjectLoaded: () => { },
+    onUpdateProjectId: () => { },
+    onVmInit: (/* vm */) => { }
 };
 
 const mapStateToProps = state => {

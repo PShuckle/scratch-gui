@@ -36,8 +36,8 @@ var studentProjectData = {};
 const roomID = nanoid();
 
 class ClassroomGUI extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = { studentVideos: {}, activeVideo: null }
 
         this.activeProject = null;
@@ -415,6 +415,7 @@ class ClassroomGUI extends React.Component {
             <Box>
                 <Dropdown></Dropdown>
                 <button onClick={this.displayThumbnailView}>Show Thumbnails</button>
+                <button onClick={() => this.props.setGuiState('blocks')}>Back to Scratch</button>
                 <div>
                     {
                         videoDisplay

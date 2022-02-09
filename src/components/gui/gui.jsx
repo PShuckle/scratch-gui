@@ -101,6 +101,7 @@ const GUIComponent = props => {
         onActivateCostumesTab,
         onActivateSoundsTab,
         onActivateTab,
+        onClickClassroom,
         onClickLogo,
         onExtensionButtonClick,
         onProjectTelemetryEvent,
@@ -235,6 +236,7 @@ const GUIComponent = props => {
                     showComingSoon={showComingSoon}
                     onClickAbout={onClickAbout}
                     onClickAccountNav={onClickAccountNav}
+                    onClickClassroom={onClickClassroom}
                     onClickLogo={onClickLogo}
                     onCloseAccountNav={onCloseAccountNav}
                     onLogOut={onLogOut}
