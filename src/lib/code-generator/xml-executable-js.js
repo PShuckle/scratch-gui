@@ -32,7 +32,8 @@ export default class xmlToJavascript {
                         scratchName: variable.innerText,
                         local: variable.getAttribute('islocal'),
                         type: variable.getAttribute('type'),
-                        cloud: variable.getAttribute('iscloud')
+                        cloud: variable.getAttribute('iscloud'),
+                        jsName: jsLegalName
                     };
                 }
             }
@@ -81,7 +82,10 @@ export default class xmlToJavascript {
                             scratchName: fieldValue
                         };
                     }
-                    param = 'this.' + param;
+                    if (fieldName == 'VARIABLE' ||
+                    fieldName == 'LIST') {
+                        param = 'this.' + param;
+                    }
                 } else {
                     param = '"' + fieldValue + '"';
                 }

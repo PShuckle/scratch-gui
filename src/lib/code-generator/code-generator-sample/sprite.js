@@ -752,6 +752,86 @@ class Sprite {
         }
     }
 
+    data_variable(variable) {
+        return variable.value;
+    }
+
+    data_setvariableto(variable, value) {
+        variable.value = value;
+    }
+
+    data_changevariableby(variable, value) {
+        variable.value += value;
+    }
+
+    data_showvariable(variable) {
+        // TODO
+    }
+
+    data_hidevariable(variable) {
+        // TODO
+    }
+
+    data_listcontents(list) {
+        return list.value;
+    }
+
+    data_addtolist(list, item) {
+        list.value.push(item);
+    }
+
+    data_deleteoflist(list, index) {
+        list.value.splice(index - 1, 1);
+    }
+
+    data_deletealloflist(list) {
+        list.value.length = 0;
+    }
+
+    data_insertatlist(list, item, index) {
+        list.value.splice(index - 1, 0, item);
+    }
+
+    data_replaceitemoflist(list, index, item) {
+        list.value.splice(index - 1, 1, item)
+    }
+
+    data_itemoflist(list, index) {
+        return list.value[index - 1];
+    }
+
+    data_itemnumoflist(list, item) {
+        return list.value.indexOf(item);
+    }
+
+    data_lengthoflist(list) {
+        return list.value.length;
+    }
+
+    data_listcontainsitem(list, item) {
+        return list.value.includes(item);
+    }
+
+    data_showlist() {
+        // TODO
+    }
+
+    data_hidelist() {
+        // TODO
+    }
+
+    procedures_call(name, warp, ...params) {
+        name(...params);
+    }
+
+    argument_reporter_boolean(value) {
+        return value;
+    }
+
+    argument_reporter_string_number(value) {
+        return value;
+    }
+
 }
 
 export default Sprite;

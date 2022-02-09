@@ -42,13 +42,18 @@ export default function createProject(files) {
                     value: init,
                     isLocal: variables[variable].local,
                     isCloud: variables[variable].cloud,
-                    scratchName: variables[variable].scratchName
+                    scratchName: variables[variable].scratchName,
+                    jsName: variables[variable].jsName
                 })
 
             if (variables[variable].local == 'false') {
-                globalVars[variable] = {
-                    value: init
-                };
+                globalVars[variable] = JSON.stringify({
+                    value: init,
+                    isLocal: variables[variable].local,
+                    isCloud: variables[variable].cloud,
+                    scratchName: variables[variable].scratchName,
+                    jsName: variables[variable].jsName
+                });
                 globalSymbolNameLookup[variable] = variables[variable].scratchName;
             }
 
@@ -164,7 +169,7 @@ export default function createProject(files) {
 
             if (snippet.includes('procedures_definition')) {
                 var functionNamePattern = /(?:procedures_prototype\(this\.)(?<funcName>.*?), (?<warp>.*?)(?:(, |\))(.|\n)*?})/
-                var functionParamPattern = /(?:argument_reporter_.*?\(this\.)(?<name>.*?)(?:\))/g
+                var functionParamPattern = /(?:argument_reporter_.*?\()(?<name>.*?)(?:\))/g
                 var func = functionNamePattern.exec(snippet);
                 var functionParamList = '';
                 var param;
@@ -198,7 +203,7 @@ export default function createProject(files) {
         zip.file(fileName, fileCode);
     });
 
-    zip.file('project.js', createProjectFile(files));
+    zip.file('project.js', createProjectFile(files, variableNameGenerator));
     zip.file('broadcaster.js', loadFile('code-generator/code-generator-sample/broadcaster.js'));
     zip.file('sprite.js', loadFile('code-generator/code-generator-sample/sprite.js'));
     zip.file('target-manager.js', loadFile('code-generator/code-generator-sample/target-manager.js'));
@@ -279,14 +284,15 @@ function createFileSkeleton(name) {
 
 }
 
-function createProjectFile(files) {
+function createProjectFile(files, variableNameGenerator) {
     var code = `import Broadcaster from './broadcaster.js';
     import GlobalVariableManager from './global-variable-manager.js';
     import TargetManager from './target-manager.js';
     `
 
     Object.keys(files).forEach((name) => {
-        code += 'import ' + name + ' from \'./' + name + '.js\';\n';
+        var jsLegalObjectName = variableNameGenerator.getGeneratedName(name)
+        code += 'import ' + jsLegalObjectName + ' from \'./' + name + '.js\';\n';
     });
 
     code += `
@@ -296,6 +302,7 @@ function createProjectFile(files) {
     
     const targets = {\n`;
     Object.keys(files).forEach((name) => {
+        var jsLegalObjectName = variableNameGenerator.getGeneratedName(name)
         const targetData = files[name].targetData;
         const targetCostumesList = targetData.sprite.costumes_.map(
             costume => '"' + costume.name + '"');
@@ -311,13 +318,15 @@ function createProjectFile(files) {
             effects: targetData.effects,
             drawableID: targetData.drawableID
         }
-        code += name + ': new ' + name + '(broadcaster, globalVariableManager, targetManager, ' +
+        code += name + ': new ' + jsLegalObjectName +
+            '(broadcaster, globalVariableManager, targetManager, ' +
             JSON.stringify(targetParameterList) + '),\n';
     });
     code += `};
     
     broadcaster.setTargets(targets);
     targetManager.addTargetsObject(targets);
+    globalVariableManager.setTargets(targets);
     
     Object.keys(targets).forEach(targetName => {
         targets[targetName].event_whenflagclicked();
@@ -338,6 +347,15 @@ function createGlobalVariableManager(vars, symbolNameLookup, drawList) {
             this.symbolNameLookup = ` + JSON.stringify(symbolNameLookup) +
         `;
         this.drawList = ` + drawList + `;
+        }
+
+        setTargets(targets) {
+            this.targets = targets;
+            Object.keys(this.variables).forEach((variable) => {
+                Object.keys(this.targets).forEach((target) => {
+                    target[variable] = this.variables[variable];
+                })
+            })
         }
     
         addVariable(name) {

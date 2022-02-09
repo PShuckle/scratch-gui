@@ -145,7 +145,7 @@ function trimJsFile(js) {
 }
 
 function getVariables(js) {
-    var localVarPattern = /this\.(?<name>.*?) = {"value":(?<type>.*?),"isLocal":"(?<isLocal>.*?)","isCloud":"(?<isCloud>.*?)","scratchName":"(?<scratchName>.*?)"}/g;
+    var localVarPattern = /this\.(?<name>.*?) = {"value":(?<type>.*?),"isLocal":"(?<isLocal>.*?)","isCloud":"(?<isCloud>.*?)","scratchName":"(?<scratchName>.*?)","jsName":"(?<jsName>.*?)"}/g;
 
     var variableList = {};
 
