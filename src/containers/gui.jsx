@@ -37,7 +37,7 @@ import vmListenerHOC from '../lib/vm-listener-hoc.jsx';
 import vmManagerHOC from '../lib/vm-manager-hoc.jsx';
 import cloudManagerHOC from '../lib/cloud-manager-hoc.jsx';
 
-import ClassroomGui from './classroom-gui.jsx'
+import ClassroomGui from './classroom-gui.jsx';
 import GUIComponent from '../components/gui/gui.jsx';
 import { setIsScratchDesktop } from '../lib/isScratchDesktop.js';
 
@@ -45,14 +45,17 @@ class GUI extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            gui: 'blocks'
+            gui: 'blocks',
         }
-        this.setGuiState = this.setGuiState.bind(this)
+        this.setGuiState = this.setGuiState.bind(this);
     }
     componentDidMount() {
         setIsScratchDesktop(this.props.isScratchDesktop);
         this.props.onStorageInit(storage);
         this.props.onVmInit(this.props.vm);
+        this.setState({
+            gui: this.state.gui,
+        })
     }
     componentDidUpdate(prevProps) {
         if (this.props.projectId !== prevProps.projectId && this.props.projectId !== null) {
@@ -66,7 +69,7 @@ class GUI extends React.Component {
     }
     setGuiState(guiState) {
         this.setState({
-            gui: guiState
+            gui: guiState,
         });
     }
     render() {
@@ -96,18 +99,25 @@ class GUI extends React.Component {
             ...componentProps
         } = this.props;
         return (
-            (this.state.gui == 'blocks') ?
+
+            <div style={{ height: "100vh" }}>
                 <GUIComponent
+                    getLoadedState={this.getLoadedState}
                     loading={fetchingProject || isLoading || loadingStateVisible}
                     onClickClassroom={this.setGuiState}
+                    visible={this.state.gui}
                     {...componentProps}
                 >
                     {children}
-                </GUIComponent> :
+                </GUIComponent>
                 <ClassroomGui
+                    getLoadedState={this.getLoadedState}
                     setGuiState={this.setGuiState}
+                    visible={this.state.gui}
                 >
                 </ClassroomGui>
+
+            </div>
 
         );
     }

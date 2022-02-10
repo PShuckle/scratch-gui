@@ -186,6 +186,7 @@ class MenuBar extends React.Component {
         // downloading or logging in first.
         // Note that if user is logged in and editing someone else's project,
         // they'll lose their work.
+        this.props.vm.initialProjectLoaded=false;
         const readyToReplaceProject = this.props.confirmReadyToReplaceProject(
             this.props.intl.formatMessage(sharedMessages.replaceProjectWarning)
         );

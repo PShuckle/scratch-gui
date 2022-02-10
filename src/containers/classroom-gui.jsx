@@ -13,7 +13,6 @@ import vmListenerHOC from '../lib/vm-listener-hoc.jsx';
 import vmManagerHOC from '../lib/vm-manager-hoc.jsx';
 import VMScratchBlocks from '../lib/blocks';
 
-import Dropdown from '../components/dropdown/dropdown.jsx';
 import Box from '../components/box/box.jsx';
 import ScreenCaptureOutput from '../containers/screen-capture-output.jsx';
 import ScreenCaptureThumbnail from '../containers/screen-capture-thumbnail.jsx';
@@ -50,7 +49,8 @@ class ClassroomGUI extends React.Component {
     }
 
     componentDidMount() {
-        
+        this._isMounted = true;
+
         this.ScratchBlocks = VMScratchBlocks(this.props.vm);
         this.props.vm.attachAudioEngine(new AudioEngine());
 
@@ -63,6 +63,12 @@ class ClassroomGUI extends React.Component {
 
         socketRef.current.on('ice-candidate', this.handleNewICECandidateMsg);
 
+        this.displayThumbnailView();
+    };
+
+    componentWillUnmount() {
+        console.log('unmounting');
+        this._isMounted = false;
     };
 
     /**
@@ -140,7 +146,9 @@ class ClassroomGUI extends React.Component {
 
         // update workspace thumbnail with the new blocks list and re-render
         studentWorkspaceRefs[eventObject.sender].current = eventObject.xml;
-        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
+        if (this._isMounted) {
+            this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: this.state.activeVideo })
+        }
     }
 
     /**
@@ -244,7 +252,9 @@ class ClassroomGUI extends React.Component {
 
         // re-render component
         activeStudent.current = null;
-        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null });
+        if (this._isMounted) {
+            this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: null });
+        }
     }
 
     /**
@@ -257,10 +267,12 @@ class ClassroomGUI extends React.Component {
         // emit event instructing student to start sharing their project ArrayBuffer
         dataChannel.current.send('send project sb3');
 
-        // re-render component
-        this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () => {
-            studentVideoFullScreen.current.srcObject = studentVideos[studentId];
-        });
+        if (this._isMounted) {
+            // re-render component
+            this.setState({ studentVideos: studentWorkspaceRefs, activeVideo: studentId }, () => {
+                studentVideoFullScreen.current.srcObject = studentVideos[studentId];
+            });
+        }
     }
 
     /**
@@ -365,6 +377,7 @@ class ClassroomGUI extends React.Component {
     }
 
     render() {
+        this.visible = (this.props.visible == 'classroom');
         var videoDisplay;
 
         // Either render all student thumbnails, or render the selected student's video and renderer
@@ -412,17 +425,17 @@ class ClassroomGUI extends React.Component {
         }
 
         return (
-            <Box>
-                <Dropdown></Dropdown>
-                <button onClick={this.displayThumbnailView}>Show Thumbnails</button>
-                <button onClick={() => this.props.setGuiState('blocks')}>Back to Scratch</button>
-                <div>
-                    {
-                        videoDisplay
-                    }
-                </div>
-                <p>Room ID: {roomID}</p>
-            </Box>
+            this.visible ?
+                <Box>
+                    <button onClick={this.displayThumbnailView}>Show Thumbnails</button>
+                    <button onClick={() => this.props.setGuiState('blocks')}>Back to Scratch</button>
+                    <div>
+                        {
+                            videoDisplay
+                        }
+                    </div>
+                    <p>Room ID: {roomID}</p>
+                </Box> : null
         );
 
     }

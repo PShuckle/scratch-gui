@@ -121,6 +121,7 @@ const GUIComponent = props => {
         targetIsStage,
         telemetryModalVisible,
         tipsLibraryVisible,
+        visible,
         vm,
         ...componentProps
     } = omit(props, 'dispatch');
@@ -147,7 +148,7 @@ const GUIComponent = props => {
         workspaceRef.current = workspace;
     }
 
-    return (<MediaQuery minWidth={layout.fullSizeMinWidth}>{isFullSize => {
+    return (visible == 'blocks') ? (<MediaQuery minWidth={layout.fullSizeMinWidth}>{isFullSize => {
         const stageSize = resolveStageSize(stageSizeMode, isFullSize);
 
         return isPlayerOnly ? (
@@ -246,6 +247,7 @@ const GUIComponent = props => {
                     onShare={onShare}
                     onStartSelectingFileUpload={onStartSelectingFileUpload}
                     onToggleLoginOpen={onToggleLoginOpen}
+                    vm={vm}
                 />
                 <Box className={styles.bodyWrapper}>
                     <Box className={styles.flexWrapper}>
@@ -380,7 +382,7 @@ const GUIComponent = props => {
                 <DragLayer />
             </Box>
         );
-    }}</MediaQuery>);
+    }}</MediaQuery>) : null;
 };
 
 GUIComponent.propTypes = {
