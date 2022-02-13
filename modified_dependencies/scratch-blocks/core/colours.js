@@ -101,6 +101,9 @@ Blockly.Colours = {
   "replacementGlow": "#FFFFFF",
   "replacementGlowSize": 2,
   "replacementGlowOpacity": 1,
+  "codeSmellGlow": "#FF0000",
+  "codeSmellGlowSize": 4,
+  "codeSmellGlowOpacity": 1,
   "colourPickerStroke": "#FFFFFF",
   // CSS colours: support RGBA
   "fieldShadow": "rgba(0,0,0,0.1)",

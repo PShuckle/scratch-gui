@@ -111,6 +111,12 @@ function createBlock(type, inputs, shadow, list) {
     return block;
 }
 
+function dead_code(child) {
+    child.setAttribute('dead', true);
+    topLevelBlocks.push(child);
+    return child;
+}
+
 function math_number(num) {
     return createBlock('math_number', {
         fields: {

@@ -1072,6 +1072,8 @@ class Blocks {
             `<${tagName}
                 id="${block.id}"
                 type="${block.opcode}"
+                dead="${block.dead}"
+                duplicate="${block.duplicate}"
                 ${block.topLevel ? `x="${block.x}" y="${block.y}"` : ''}
             >`;
         const commentId = block.comment;

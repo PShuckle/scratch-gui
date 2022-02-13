@@ -79,6 +79,20 @@ export default function readableToexecutableJs(js) {
             }
 
             functions[i] = executableCode;
+        } else if (functionHeader == 'dead_code') {
+            let threads = handleFunctionThreads(functionBody);
+
+            let replacementString = '';
+
+            // start at i = 1 because the split function will set index zero to be the substring 
+            // before the beginning of the first thread
+            for (let i = 1; i < threads.length; i++) {
+                let thread = threads[i];
+                replacementString += 'dead_code(' +
+                    '\n' + thread + ')\n';
+            }
+
+            functions[i] = replacementString;
         } else if (functionHeader) {
             const paramsPattern = /\((?<params>.*?)\)/
 

@@ -177,6 +177,53 @@ Blockly.createDom_ = function(container, options) {
       },
       stackGlowFilter);
 
+  var codeSmellFilter = Blockly.utils.createSvgElement('filter',
+      {
+        'id': 'blocklyCodeSmellFilter' + rnd,
+        'height': '160%',
+        'width': '180%',
+        y: '-30%',
+        x: '-40%'
+      },
+      defs);
+  options.codeSmellGlowBlur = Blockly.utils.createSvgElement('feGaussianBlur',
+      {
+        'in': 'SourceGraphic',
+        'stdDeviation': Blockly.Colours.codeSmellGlowSize
+      },
+      codeSmellFilter);
+  // Set all gaussian blur pixels to 1 opacity before applying flood
+  var componentTransfer = Blockly.utils.createSvgElement('feComponentTransfer', {'result': 'outBlur'}, codeSmellFilter);
+  Blockly.utils.createSvgElement('feFuncA',
+      {
+        'type': 'table',
+        'tableValues': '0' + goog.string.repeat(' 1', 16)
+      },
+      componentTransfer);
+  // Color the highlight
+  Blockly.utils.createSvgElement('feFlood',
+      {
+        'flood-color': Blockly.Colours.codeSmellGlow,
+        'flood-opacity': Blockly.Colours.codeSmellGlowOpacity,
+        'result': 'outColor'
+      },
+      codeSmellFilter);
+  Blockly.utils.createSvgElement('feComposite',
+      {
+        'in': 'outColor',
+        'in2': 'outBlur',
+        'operator': 'in',
+        'result': 'outGlow'
+      },
+      codeSmellFilter);
+  Blockly.utils.createSvgElement('feComposite',
+      {
+        'in': 'SourceGraphic',
+        'in2': 'outGlow',
+        'operator': 'over'
+      },
+      codeSmellFilter);
+
   // Filter for replacement marker
   var replacementGlowFilter = Blockly.utils.createSvgElement('filter',
       {
@@ -254,6 +301,7 @@ Blockly.createDom_ = function(container, options) {
       },
       disabledPattern);
   options.stackGlowFilterId = stackGlowFilter.id;
+  options.codeSmellFilterId = codeSmellFilter.id;
   options.replacementGlowFilterId = replacementGlowFilter.id;
   options.disabledPatternId = disabledPattern.id;
 

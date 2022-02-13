@@ -250,6 +250,12 @@ Blockly.Xml.blockToDom = function(block, opt_noId) {
   if (!block.isEditable()) {
     element.setAttribute('editable', false);
   }
+  if (block.isDead()) {
+    element.setAttribute('dead', true);
+  }
+  if (block.isDuplicate()) {
+    element.setAttribute('duplicate', true);
+  }
 
   var nextBlock = block.getNextBlock();
   if (nextBlock) {
@@ -813,6 +819,14 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace) {
   var collapsed = xmlBlock.getAttribute('collapsed');
   if (collapsed) {
     block.setCollapsed(collapsed == 'true');
+  }
+  var dead = xmlBlock.getAttribute('dead');
+  if (dead) {
+    block.setDead(dead == 'true');
+  }
+  var duplicate = xmlBlock.getAttribute('duplicate');
+  if (duplicate) {
+    block.setDuplicate(duplicate == 'true');
   }
   if (xmlBlock.nodeName.toLowerCase() == 'shadow') {
     // Ensure all children are also shadows.

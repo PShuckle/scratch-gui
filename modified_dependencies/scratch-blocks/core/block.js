@@ -1176,6 +1176,44 @@ Blockly.Block.prototype.setCollapsed = function(collapsed) {
 };
 
 /**
+ * Set whether the block is the top block in a dead code stack or not.
+ * @param {boolean} collapsed True if collapsed.
+ */
+ Blockly.Block.prototype.setDead = function(dead) {
+  this.dead = dead;
+  if (dead) {
+    this.setCodeSmellGlow();
+  }
+};
+
+/**
+ * Get whether the block is the top block in a dead code stack or not.
+ * @param {boolean} collapsed True if collapsed.
+ */
+ Blockly.Block.prototype.isDead = function() {
+  return this.dead;
+};
+
+/**
+ * Set whether the block is part of a duplicate code stack or not.
+ * @param {boolean} collapsed True if collapsed.
+ */
+ Blockly.Block.prototype.setDuplicate = function(duplicate) {
+  this.duplicate = duplicate;
+  if (duplicate) {
+    this.setCodeSmellGlow();
+  }
+};
+
+/**
+ * Get whether the block is part of a duplicate code stack or not.
+ * @param {boolean} collapsed True if collapsed.
+ */
+ Blockly.Block.prototype.isDuplicate = function() {
+  return this.duplicate;
+};
+
+/**
  * Create a human-readable text representation of this block and any children.
  * @param {number=} opt_maxLength Truncate the string to this length.
  * @param {string=} opt_emptyToken The placeholder string used to denote an

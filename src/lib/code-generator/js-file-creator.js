@@ -90,7 +90,7 @@ export default function createProject(files) {
 
 
             }
-            if (snippet.includes('event_whenkeypressed')) {
+            else if (snippet.includes('event_whenkeypressed')) {
                 var keyPressPattern = /(?:event_whenkeypressed\()(?<keyname>[^()]*)(?:\))/g;
                 var key = keyPressPattern.exec(snippet);
 
@@ -104,7 +104,7 @@ export default function createProject(files) {
                             }, 0)
                         }`)
             }
-            if (snippet.includes('event_whenthisspriteclicked')) {
+            else if (snippet.includes('event_whenthisspriteclicked')) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
                 fileCode = fileCode.replace(`event_whenthisspriteclicked() {`,
                     `event_whenthisspriteclicked() {
@@ -113,7 +113,7 @@ export default function createProject(files) {
                     }, 0)`)
             }
 
-            if (snippet.includes('event_whenbackdropswitchesto')) {
+            else if (snippet.includes('event_whenbackdropswitchesto')) {
                 var backdropPattern = /(?:event_whenbackdropswitchesto\()(?<backdropname>[^()]*)(?:\))/;
                 var backdrop = backdropPattern.exec(snippet);
 
@@ -127,7 +127,7 @@ export default function createProject(files) {
                         }`)
             }
 
-            if (snippet.includes('event_whengreaterthan')) {
+            else if (snippet.includes('event_whengreaterthan')) {
                 var greaterThanPattern = /(?:event_whengreaterthan\()(?<whengreaterthanmenu>[^,]*?), (?<value>[^\n]*?)(?:\);)/;
                 var greaterThan = greaterThanPattern.exec(snippet);
 
@@ -143,7 +143,7 @@ export default function createProject(files) {
                             }`)
             }
 
-            if (snippet.includes('event_whenbroadcastreceived')) {
+            else if (snippet.includes('event_whenbroadcastreceived')) {
                 var messagePattern = /(?:event_whenbroadcastreceived\()(?<messagetext>[^()]*)(?:\))/;
                 var message = messagePattern.exec(snippet);
 
@@ -157,7 +157,7 @@ export default function createProject(files) {
                         }`)
             }
 
-            if (snippet.includes('control_start_as_clone')) {
+            else if (snippet.includes('control_start_as_clone')) {
                 var trimmedSnippet = snippet.substring(snippet.indexOf('\n') + 1);
 
                 fileCode = fileCode.replace(`control_start_as_clone() {`,
@@ -167,7 +167,7 @@ export default function createProject(files) {
                     }, 0)`)
             }
 
-            if (snippet.includes('procedures_definition')) {
+            else if (snippet.includes('procedures_definition')) {
                 var functionNamePattern = /(?:procedures_prototype\(this\.)(?<funcName>.*?), (?<warp>.*?)(?:(, |\))(.|\n)*?})/
                 var functionParamPattern = /(?:argument_reporter_.*?\()(?<name>.*?)(?:\))/g
                 var func = functionNamePattern.exec(snippet);
@@ -188,6 +188,16 @@ export default function createProject(files) {
                     functionParamList.substring(0, functionParamList.lastIndexOf(',')) + `) {` + trimmedSnippet + '\n}\n\n'
 
 
+            }
+            else {
+                if (snippet) {
+                    fileCode = fileCode.replace(`dead_code() {`,
+                    `dead_code() {
+                        setTimeout(function() {
+                        ` + snippet + `
+                    }, 0)`)
+                }
+                
             }
         })
 
@@ -275,6 +285,10 @@ function createFileSkeleton(name) {
         }
 
         PROCEDURES_DEFINITIONS
+
+        dead_code() {
+
+        }
 
     }
 

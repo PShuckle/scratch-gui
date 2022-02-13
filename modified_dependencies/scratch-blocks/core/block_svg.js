@@ -244,6 +244,19 @@ Blockly.BlockSvg.prototype.setGlowStack = function(isGlowingStack) {
 };
 
 /**
+ * Glow the stack starting with this block, to highlight it visually as if it's running.
+ * @param {boolean} isGlowingStack Whether the stack starting with this block should glow.
+ */
+ Blockly.BlockSvg.prototype.setCodeSmellGlow = function() {
+
+  var svg = this.getSvgRoot();
+  if (!svg.hasAttribute('filter')) {
+    var codeSmellFilterId = this.workspace.options.codeSmellFilterId || 'blocklyCodeSmellFilter';
+    svg.setAttribute('filter', 'url(#' + codeSmellFilterId + ')');
+  } 
+};
+
+/**
  * Block's mutator icon (if any).
  * @type {Blockly.Mutator}
  */
