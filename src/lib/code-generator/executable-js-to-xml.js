@@ -1,3 +1,5 @@
+import detectDuplicateCode from './duplicate-code-detector.js';
+
 let topLevelBlocks = [];
 
 export default function javascriptToXml(javascript) {
@@ -22,6 +24,8 @@ export default function javascriptToXml(javascript) {
     })
 
     topLevelBlocks = [];
+
+    detectDuplicateCode(xml);
 
     console.log(xml);
 
