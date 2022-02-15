@@ -214,12 +214,12 @@ export default function createProject(files) {
     });
 
     zip.file('project.js', createProjectFile(files, variableNameGenerator));
-    zip.file('broadcaster.js', loadFile('code-generator/code-generator-sample/broadcaster.js'));
-    zip.file('sprite.js', loadFile('code-generator/code-generator-sample/sprite.js'));
-    zip.file('target-manager.js', loadFile('code-generator/code-generator-sample/target-manager.js'));
+    zip.file('broadcaster.js', loadFile('code-generator-sample/broadcaster.js'));
+    zip.file('sprite.js', loadFile('code-generator-sample/sprite.js'));
+    zip.file('target-manager.js', loadFile('code-generator-sample/target-manager.js'));
     zip.file('global-variable-manager.js',
         createGlobalVariableManager(globalVars, globalSymbolNameLookup, drawList));
-    zip.file('package.json', loadFile('code-generator/code-generator-sample/package.json'));
+    zip.file('package.json', loadFile('code-generator-sample/package.json'));
 
     zip.generateAsync({
             type: "blob"

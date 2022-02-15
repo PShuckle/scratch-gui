@@ -15,7 +15,6 @@ const ExtensionManager = require('./extension-support/extension-manager');
 const log = require('./util/log');
 const MathUtil = require('./util/math-util');
 const Runtime = require('./engine/runtime');
-const Generator = require('./code-generator/generator')
 const StringUtil = require('./util/string-util');
 const formatMessage = require('format-message');
 
@@ -57,8 +56,6 @@ class VirtualMachine extends EventEmitter {
         centralDispatch.setService('runtime', this.runtime).catch(e => {
             log.error(`Failed to register runtime service: ${JSON.stringify(e)}`);
         });
-
-        this.generator = new Generator(this.runtime);
 
         /**
          * The "currently editing"/selected target ID for the VM.

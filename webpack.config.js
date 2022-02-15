@@ -175,8 +175,8 @@ module.exports = [
                 to: 'static/blocks-media'
             }]),
             new CopyWebpackPlugin([{
-                from: 'src/lib/code-generator',
-                to: 'code-generator'
+                from: 'src/lib/code-generator/code-generator-sample',
+                to: 'code-generator-sample'
             }]),
             new CopyWebpackPlugin([{
                 from: 'extensions/**',
@@ -222,8 +222,8 @@ module.exports = [
                     to: 'static/blocks-media'
                 }]),
                 new CopyWebpackPlugin([{
-                    from: 'src/lib/code-generator',
-                    to: 'code-generator'
+                    from: 'src/lib/code-generator/code-generator-sample',
+                    to: 'code-generator-sample'
                 }]),
                 new CopyWebpackPlugin([{
                     from: 'extension-worker.{js,js.map}',
