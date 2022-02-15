@@ -1,4 +1,4 @@
-<!--Adapted from https://forkphorus.github.io/sb-downloader/-->
+<!--Adapted from https://forkphorus.github.io/sb-downloader/ -->
 
 <!DOCTYPE html>
 <html>
@@ -498,8 +498,8 @@
             }
             // Starts loading a project. Downloads it when complete.
             function downloadProject(id, type) {
-                console.log(id);
                 lastResult = null;
+                // try each of sb3, sb2, sb1 formats in turn until a working one is found
                 return SBDL.loadProject(id, type).catch((err) => {
                     return SBDL.loadProject(id, 'sb2').catch((err) => {
                         return SBDL.loadProject(id, 'sb');
