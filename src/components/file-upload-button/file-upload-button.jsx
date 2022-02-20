@@ -5,7 +5,6 @@ class FileUploadButton extends React.Component {
     super(props);
     this.uploadFile = this.uploadFile.bind(this);
     this.prevTarget = null;
-    // this.domToWorkspace = this.domToWorkspace.bind(this);
   }
 
   uploadFile(event) {
@@ -62,7 +61,6 @@ class FileUploadButton extends React.Component {
           this.props.vm.setEditingTarget(this.props.vm.runtime.getTargetForStage());
           this.props.generator.javascriptToDom(reader.result);
         }
-        // this.domToWorkspace(this.javascriptToDom(reader.result));
       };
 
       reader.onload = reader.onload.bind(this);
@@ -72,16 +70,8 @@ class FileUploadButton extends React.Component {
     return;
   }
 
-  // javascriptToDom(javascript) {
-  //   return this.props.vm.generator.javascriptToXml(javascript);
-  // }
-
-  // domToWorkspace(xml) {
-  //   this.props.ScratchBlocks.Xml.clearWorkspaceAndLoadFromXml(xml, this.props.ScratchBlocks.getMainWorkspace());
-  // }
-
   render() {
-    return <span style={{ 'position': 'absolute', 'left': '5rem', 'z-index': '9' }}>
+    return <span style={{ 'position': 'absolute', 'left': '12rem', 'z-index': '9' }}>
       <input type="file"
         directory=""
         webkitdirectory=""

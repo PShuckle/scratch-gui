@@ -11,6 +11,8 @@ export default function executableToReadableJs(js) {
         return this.substring(0, start) + replacementSubstring + this.substring(end);
     };
 
+    console.log(js);
+
     const variableNameGenerator = new VariableNameGenerator();
 
     js = replaceFunctionWith(js, /.next\(/g, (params) => {
